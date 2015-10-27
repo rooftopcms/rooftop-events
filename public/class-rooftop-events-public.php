@@ -135,36 +135,8 @@ class Rooftop_Events_Public {
             'exclude_from_search' => false,
             'publicly_queryable'  => true,
             'capability_type'     => 'page',
+            'show_in_rest'        => true
         );
-        register_post_type( 'event', $args );
-    }
-
-    public function register_event_routes() {
-        $routes['/events'] = array(
-            array( array( $this, 'get_posts'), WP_REST_Server::READABLE ),
-            array( array( $this, 'new_post'), WP_REST_Server::CREATABLE | WP_REST_Server::ACCEPT_JSON ),
-        );
-        $routes['/events/(?P<id>\d+)'] = array(
-            array( array( $this, 'get_post'), WP_REST_Server::READABLE ),
-            array( array( $this, 'edit_post'), WP_REST_Server::EDITABLE | WP_REST_Server::ACCEPT_JSON ),
-            array( array( $this, 'delete_post'), WP_REST_Server::DELETABLE ),
-        );
-
-        return $routes;
-    }
-
-    public function get_posts() {
-    }
-    public function get_post() {
-        return get_post(5);
-    }
-    public function new_post() {
-
-    }
-    public function edit_post() {
-
-    }
-    public function delete_post() {
-
+        register_post_type( 'events', $args );
     }
 }

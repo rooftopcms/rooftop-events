@@ -172,7 +172,6 @@ class Rooftop_Events {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
         $this->loader->add_action('init', $plugin_public, 'register_event_post_type');
-        $this->loader->add_action('rest_api_init', $plugin_public, 'register_event_routes');
 	}
 
 	/**
