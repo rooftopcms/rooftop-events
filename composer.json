@@ -16,6 +16,6 @@
     ],
     "type": "wordpress-muplugin",
     "require": {
-        "propel/propel": "~2.0@dev"
+        "wpackagist-plugin/propel": "2.0.4"
     }
 }
