@@ -38,8 +38,6 @@ abstract class Rooftop_Model implements TableModel {
     static function createRow($data) {
         global $wpdb;
 
-        $t = $wpdb->prefix . strtolower(get_called_class()).'s';
-
         $class = get_called_class();
         $table_name = call_user_func(array(__NAMESPACE__ . "\\" . $class, "table_name"));
 
@@ -55,6 +53,10 @@ abstract class Rooftop_Model implements TableModel {
         $table_name = call_user_func(array(__NAMESPACE__ . "\\" . $class, "table_name"));
 
         $wpdb->update($table_name, $data, array('id' => $id));
+    }
+
+    static function all() {
+        return self::findWhere("1=1");
     }
 
     static function find($id) {

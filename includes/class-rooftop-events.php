@@ -123,11 +123,6 @@ class Rooftop_Events {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event_instance.php';
 
-//        $e0 = new Event(array('post_id' => 1));
-//        $e1 = Event::find(1);
-//        $e2 = Event::find(2);
-//        $e3 = Event::findWhere("id = 3");
-
 		$this->loader = new Rooftop_Events_Loader();
 
 	}
@@ -167,6 +162,9 @@ class Rooftop_Events {
         $this->loader->add_action( 'init', $plugin_admin, 'create_tables' );
         $this->loader->add_action( 'wpmu_new_blog', $plugin_admin, 'create_tables' );
         $this->loader->add_action( 'delete_blog', $plugin_admin, 'remove_tables', 20 );
+
+        $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_event_metabox_to_instance_form', 10, 3 );
+        $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_event_instance_metabox_to_instance_form', 11, 3 );
 
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_instance', 10, 3 );

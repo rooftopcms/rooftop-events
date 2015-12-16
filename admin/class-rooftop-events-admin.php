@@ -137,6 +137,68 @@ class Rooftop_Events_Admin {
         remove_menu_page('edit.php?post_type=event_instances');
     }
 
+    public function add_event_metabox_to_instance_form() {
+        add_meta_box('event_instance_event', 'Event', array($this, 'event_instance_event_metabox'), 'event_instance', 'side');
+    }
+    public function add_event_instance_metabox_to_instance_form() {
+        add_meta_box('event_instance_details', 'Event Instance', array($this, 'event_instance_details_metabox'), 'event_instance', 'normal', 'high');
+    }
+
+    function event_instance_event_metabox() {
+        global $post;
+
+        $rooftop_event_id = get_post_meta($post->ID, 'event_id', true);
+        $event_posts = get_posts(array('post_type' => 'event'));
+
+        if( !$rooftop_event_id && count($event_posts) ) {
+            $rooftop_event_id = array_key_exists('event_id', $_GET) ? $_GET['event_id'] :  array_values($event_posts)[0]->ID;
+
+            echo '<select name="rooftop[event][event_id]">';
+            foreach($event_posts as $event) {
+                $selected = $rooftop_event_id == $event->ID ? 'selected' : '';
+                echo "<option value='".$event->ID."' $selected>".$event->post_title."</option>";
+            }
+            echo '</select>';
+        }else {
+            $event = get_post($rooftop_event_id);
+            echo "<p>$event->post_title</p>";
+        }
+    }
+
+    function event_instance_details_metabox() {
+        $formatted_date = function($time) {
+            $date = new DateTime();
+            return $date->setTimestamp($time)->format("d-m-Y H:i:s");
+        };
+
+        if( array_key_exists('post', $_GET) ) {
+            $instance = get_post($_GET['post']);
+            $instance_meta = get_post_meta($instance->ID, 'event_instance_availability', true);
+            // ensure the event_instance_availability is an array (get_post_meta will return "" if the post didn't have anything stored against it previously
+            $instance_meta = is_array($instance_meta) ? $instance_meta : [];
+
+            $starts_at = array_key_exists('starts_at', $instance_meta) ? $instance_meta['starts_at'] : $formatted_date(time());
+            $stops_at  = array_key_exists('stops_at', $instance_meta)  ? $instance_meta['stops_at'] : $formatted_date(time());
+            $capacity  = array_key_exists('seats_capacity', $instance_meta)  ? $instance_meta['seats_capacity'] : 0;
+            $available = array_key_exists('seats_available', $instance_meta) ? $instance_meta['seats_available'] : 0;
+        }else {
+            $starts_at = $formatted_date(time());
+            $stops_at  = $formatted_date(time());
+
+            $capacity  = 0;
+            $available = 0;
+        }
+
+        echo "<table class='table' style='width: 100%'>";
+        echo "    <tr>";
+        echo "        <td>Start Date<br/>      <input type='text' value='".$starts_at."' name='rooftop[event_instance][starts_at]' /></td>";
+        echo "        <td>End Date<br/>        <input type='text' value='".$stops_at."'  name='rooftop[event_instance][stops_at]' /></td>";
+        echo "        <td>Seating Capacity<br/><input type='text' value='".$capacity."'  name='rooftop[event_instance][seats_capacity]' /></td>";
+        echo "        <td>Seats Available<br/> <input type='text' value='".$available."' name='rooftop[event_instance][seats_available]' /></td>";
+        echo "    </tr>";
+        echo "</table>";
+    }
+
     public function add_events_admin_ui() {
         add_meta_box( 'rooftop_event_instances_link', 'Event Instances', array($this, 'rooftop_event_instances'), 'event', 'normal', 'default' );
     }
@@ -144,21 +206,65 @@ class Rooftop_Events_Admin {
     public function save_event($post_id, $post, $update) {
         if( 'event' != $post->post_type ) return;
 
-        $f = 1;
+        $rooftop_event_id = get_post_meta($post_id, 'rooftop_event_id', true);
+
+        if( !$rooftop_event_id ) {
+            $rooftop_event = new Event(array('post_id' => $post_id));
+            $rooftop_event->save();
+
+            update_post_meta($post_id, 'rooftop_event_id', $rooftop_event->id);
+        }
     }
 
     public function save_event_instance($post_id, $post, $update) {
         if( 'event_instance' != $post->post_type ) return;
 
-        $f = 1;
+        // save this instance with a corresponding event_id, so that we can lookup an event's instances using a WP meta query
+        $event_id = get_post_meta($post_id, 'event_id', true);
+        if( !$event_id ) {
+            $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_instance']['event_id'] : null;
+
+            if( !$event_id ) {
+                return new WP_Error(422, "Unprocessible entity");
+                echo "No event ID provided";
+                exit;
+            }
+
+            update_post_meta($post_id, 'event_id', $event_id);
+        }
+
+        $rooftop_event_instance_id = get_post_meta($post_id, 'rooftop_event_instance_id', true);
+        if( !$rooftop_event_instance_id ) {
+            $args = $_POST['rooftop']['event_instance'];
+
+            $rooftop_event_instance = new Event_Instance($args);
+            $rooftop_event_instance->save();
+
+            $rooftop_event_instance_id = $rooftop_event_instance->id;
+            update_post_meta($post_id, 'rooftop_event_instance_id', $rooftop_event_instance_id);
+        }else {
+            $rooftop_event_instance = Event_Instance::find($rooftop_event_instance_id);
+
+            foreach($_POST['rooftop']['event_instance'] as $attribute=>$value) {
+                $rooftop_event_instance->set($attribute, $value);
+            }
+
+            $rooftop_event_instance->save();
+        }
+
+        if( !$rooftop_event_instance->id ) {
+            return new WP_Error(422, "Unprocessible entity");
+            echo "Couldn't save event instance data";
+            exit;
+        }else {
+            update_post_meta($post_id, 'event_instance_availability', $rooftop_event_instance->attributes);
+        }
     }
 
     function rooftop_event_instances() {
         $event_instance_args = array(
-            'meta_query' => array(
-                'key' => 'event_id',
-                'value' => get_the_ID()
-            ),
+            'meta_key' => 'event_id',
+            'meta_value' => get_the_ID(),
             'post_type' => 'event_instance',
             'posts_per_page' => -1
         );

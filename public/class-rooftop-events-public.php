@@ -181,7 +181,59 @@ class Rooftop_Events_Public {
     }
 
     public function register_event_routes() {
-        $f = func_get_args();
-        $x = 1;
+        register_rest_route('rooftop-events/v2', '/events', array(
+            array(
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_events'),
+                'permission_callback' => array( $this, 'get_items_permissions_check' )
+            )
+        ));
+        register_rest_route('rooftop-events/v2', '/events/(?P<id>\d+)', array(
+            array(
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_event'),
+                'permission_callback' => array( $this, 'get_items_permissions_check' )
+            )
+        ));
+        register_rest_route('rooftop-events/v2', '/events/(?P<id>\d+)/instances', array(
+            array(
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_event_instances'),
+                'permission_callback' => array( $this, 'get_items_permissions_check' )
+            )
+        ));
+        register_rest_route('rooftop-events/v2', '/events/(?P<event_id>\d+)/instances/(?P<id>\d+)', array(
+            array(
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_event_instance'),
+                'permission_callback' => array( $this, 'get_items_permissions_check' )
+            )
+        ));
+    }
+
+    function get_events($request) {
+        $events = get_posts(array('post_type' => 'event'));
+        return $events;
+    }
+    function get_event($request) {
+        $id = (int) $request['id'];
+
+        return ['event'];
+    }
+    function get_event_instances($request) {
+        $event_instances = get_posts(array('post_type' => 'event_instance'));
+        $event_instances = ['event_instances'];
+        return $event_instances;
+    }
+    function get_event_instance($request) {
+        $id = $request['id'];
+        $event_id = $request['event_id'];
+
+        $event_instance = ['event_instance'];
+        return $event_instance;
+    }
+
+    function get_items_permissions_check($request) {
+        return true;
     }
 }
