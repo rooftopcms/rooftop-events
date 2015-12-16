@@ -119,6 +119,15 @@ class Rooftop_Events {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-rooftop-events-public.php';
 
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/rooftop_model.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event_instance.php';
+
+//        $e0 = new Event(array('post_id' => 1));
+//        $e1 = Event::find(1);
+//        $e2 = Event::find(2);
+//        $e3 = Event::findWhere("id = 3");
+
 		$this->loader = new Rooftop_Events_Loader();
 
 	}
@@ -155,6 +164,15 @@ class Rooftop_Events {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
+        $this->loader->add_action( 'init', $plugin_admin, 'create_tables' );
+        $this->loader->add_action( 'wpmu_new_blog', $plugin_admin, 'create_tables' );
+        $this->loader->add_action( 'delete_blog', $plugin_admin, 'remove_tables', 20 );
+
+        $this->loader->add_action( 'save_post', $plugin_admin, 'save_event', 10, 3 );
+        $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_instance', 10, 3 );
+
+        //$this->loader->add_action( 'admin_menu', $plugin_admin, 'remove_event_instances_from_menu', 999 );
+        $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_events_admin_ui' );
 	}
 
 	/**
@@ -171,7 +189,11 @@ class Rooftop_Events {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
-        $this->loader->add_action('init', $plugin_public, 'register_event_post_type');
+        $this->loader->add_action( 'init', $plugin_public, 'register_event_post_type' );
+        $this->loader->add_action( 'init', $plugin_public, 'register_event_instance_post_type' );
+
+        $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_event_routes' );
+
 	}
 
 	/**

@@ -119,7 +119,7 @@ class Rooftop_Events_Public {
             'not_found_in_trash'  => __( 'Not found in Trash', 'text_domain' ),
         );
         $args = array(
-            'label'               => __( 'Event', 'text_domain' ),
+            'label'               => __( 'Events', 'text_domain' ),
             'description'         => __( 'Event Description', 'text_domain' ),
             'labels'              => $labels,
             'supports'            => array( ),
@@ -137,6 +137,51 @@ class Rooftop_Events_Public {
             'capability_type'     => 'page',
             'show_in_rest'        => true
         );
-        register_post_type( 'events', $args );
+        register_post_type( 'event', $args );
+    }
+
+    public function register_event_instance_post_type() {
+        $labels = array(
+            'name'                => _x( 'Event Instances', 'Post Type General Name', 'text_domain' ),
+            'singular_name'       => _x( 'Event Instance', 'Post Type Singular Name', 'text_domain' ),
+            'menu_name'           => __( 'Event Instances', 'text_domain' ),
+            'name_admin_bar'      => __( 'Event Instance', 'text_domain' ),
+            'parent_item_colon'   => __( 'Parent Event Instance:', 'text_domain' ),
+            'all_items'           => __( 'All Event Instances', 'text_domain' ),
+            'add_new_item'        => __( 'Add New Event Instance', 'text_domain' ),
+            'add_new'             => __( 'Add New', 'text_domain' ),
+            'new_item'            => __( 'New Event Instance', 'text_domain' ),
+            'edit_item'           => __( 'Edit Event Instance', 'text_domain' ),
+            'update_item'         => __( 'Update Event Instance', 'text_domain' ),
+            'view_item'           => __( 'View Event Instance', 'text_domain' ),
+            'search_items'        => __( 'Search Event Instances', 'text_domain' ),
+            'not_found'           => __( 'Not found', 'text_domain' ),
+            'not_found_in_trash'  => __( 'Not found in Trash', 'text_domain' ),
+        );
+        $args = array(
+            'label'               => __( 'Event Instances', 'text_domain' ),
+            'description'         => __( 'Event Instance Description', 'text_domain' ),
+            'labels'              => $labels,
+            'supports'            => array( ),
+            'hierarchical'        => false,
+            'public'              => true,
+            'show_ui'             => true,
+            'show_in_menu'        => true,
+            'menu_position'       => 20,
+            'show_in_admin_bar'   => true,
+            'show_in_nav_menus'   => true,
+            'can_export'          => true,
+            'has_archive'         => true,
+            'exclude_from_search' => false,
+            'publicly_queryable'  => true,
+            'capability_type'     => 'page',
+            'show_in_rest'        => true
+        );
+        register_post_type( 'event_instance', $args );
+    }
+
+    public function register_event_routes() {
+        $f = func_get_args();
+        $x = 1;
     }
 }
