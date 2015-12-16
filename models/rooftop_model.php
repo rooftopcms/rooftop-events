@@ -1,9 +1,11 @@
 <?php
 
-abstract class Rooftop_Model {
-    public $id, $attributes;
+interface TableModel {
+    static function table_name();
+}
 
-    abstract function table_name();
+abstract class Rooftop_Model implements TableModel {
+    public $id, $attributes;
 
     function __construct($attributes = null, $after_find = false) {
         $this->attributes = $attributes;
@@ -29,15 +31,21 @@ abstract class Rooftop_Model {
         if( $this->id ) {
             self::updateRow($this->id, $this->attributes);
         }else {
-            self::createRow($this->attributes);
+            $this->id = self::createRow($this->attributes);
         }
     }
 
     static function createRow($data) {
         global $wpdb;
 
-        $table_name = call_user_func(array(get_called_class(), "table_name"));
+        $t = $wpdb->prefix . strtolower(get_called_class()).'s';
+
+        $class = get_called_class();
+        $table_name = call_user_func(array(__NAMESPACE__ . "\\" . $class, "table_name"));
+
         $wpdb->insert($table_name, $data);
+
+        return $wpdb->insert_id;
     }
 
     static function updateRow($id, $data) {

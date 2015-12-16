@@ -2,7 +2,7 @@
 
 class Event extends Rooftop_Model {
 
-    function table_name() {
+    static function table_name() {
         global $wpdb;
 
         return $wpdb->prefix . "events";
