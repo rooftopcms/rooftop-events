@@ -7,10 +7,6 @@ class Event extends Rooftop_Model {
 
         return $wpdb->prefix . "events";
     }
-
-    function after_find() {
-        $this->event_instances = Event_Instance::findWhere("event_id = ". $this->id);
-    }
 }
 
 ?>

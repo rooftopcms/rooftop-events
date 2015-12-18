@@ -100,140 +100,67 @@ class Rooftop_Events_Public {
 
 	}
 
-    public function register_event_post_type() {
-        $labels = array(
-            'name'                => _x( 'Events', 'Post Type General Name', 'text_domain' ),
-            'singular_name'       => _x( 'Event', 'Post Type Singular Name', 'text_domain' ),
-            'menu_name'           => __( 'Events', 'text_domain' ),
-            'name_admin_bar'      => __( 'Event', 'text_domain' ),
-            'parent_item_colon'   => __( 'Parent Event:', 'text_domain' ),
-            'all_items'           => __( 'All Event', 'text_domain' ),
-            'add_new_item'        => __( 'Add New Event', 'text_domain' ),
-            'add_new'             => __( 'Add New', 'text_domain' ),
-            'new_item'            => __( 'New Event', 'text_domain' ),
-            'edit_item'           => __( 'Edit Event', 'text_domain' ),
-            'update_item'         => __( 'Update Event', 'text_domain' ),
-            'view_item'           => __( 'View Event', 'text_domain' ),
-            'search_items'        => __( 'Search Event', 'text_domain' ),
-            'not_found'           => __( 'Not found', 'text_domain' ),
-            'not_found_in_trash'  => __( 'Not found in Trash', 'text_domain' ),
+    public function register_event_post_types() {
+        $types = array(
+            'event' => array('plural' => 'Events', 'singular' => 'Event', 'custom_args' => null),
+            'event_instance'   => array('plural' => 'Event Instances',    'singular' => 'Event Instance',    'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
+            'event_price_list' => array('plural' => 'Event Price Lists',  'singular' => 'Event Price List',  'custom_args' => array('show_in_menu'=>false)),
+            'event_price'      => array('plural' => 'Event Prices',       'singular' => 'Event Price',       'custom_args' => array('show_in_menu'=>false, 'supports' => false)),
+            'event_price_band' => array('plural' => 'Event Price Bands',  'singular' => 'Event Price Band',  'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
+            'event_price_type' => array('plural' => 'Event Ticket Types', 'singular' => 'Event Ticket Type', 'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
         );
-        $args = array(
-            'label'               => __( 'Events', 'text_domain' ),
-            'description'         => __( 'Event Description', 'text_domain' ),
-            'labels'              => $labels,
-            'supports'            => array( ),
-            'hierarchical'        => false,
-            'public'              => true,
-            'show_ui'             => true,
-            'show_in_menu'        => true,
-            'menu_position'       => 20,
-            'show_in_admin_bar'   => true,
-            'show_in_nav_menus'   => true,
-            'can_export'          => true,
-            'has_archive'         => true,
-            'exclude_from_search' => false,
-            'publicly_queryable'  => true,
-            'capability_type'     => 'page',
-            'show_in_rest'        => true
-        );
-        register_post_type( 'event', $args );
+
+        foreach($types as $type => $args) {
+            list($plural, $singular, $custom_args) = array_values($args);
+
+            $menu_item_name_prefix = (is_array( $custom_args ) && array_key_exists( 'show_in_menu', $custom_args )) ? "" : "All ";
+
+            $labels = array(
+                'name'                => _x( $plural, 'Post Type General Name', 'text_domain' ),
+                'singular_name'       => _x( $singular, 'Post Type Singular Name', 'text_domain' ),
+                'menu_name'           => __( $plural, 'text_domain' ),
+                'name_admin_bar'      => __( $singular, 'text_domain' ),
+                'parent_item_colon'   => __( "Parent $singular:", 'text_domain' ),
+                'all_items'           => __( "$menu_item_name_prefix$plural", 'text_domain' ),
+                'add_new_item'        => __( "Add New $singular", 'text_domain' ),
+                'add_new'             => __( "Add New $singular", 'text_domain' ),
+                'new_item'            => __( "New $singular", 'text_domain' ),
+                'edit_item'           => __( "Edit $singular", 'text_domain' ),
+                'update_item'         => __( "Update $singular", 'text_domain' ),
+                'view_item'           => __( "View $singular", 'text_domain' ),
+                'search_items'        => __( "Search $singular", 'text_domain' ),
+                'not_found'           => __( "Not found", 'text_domain' ),
+                'not_found_in_trash'  => __( "Not found in Trash", 'text_domain' ),
+            );
+            $post_args = array(
+                'label'               => __( "$plural", 'text_domain' ),
+                'description'         => __( "$singular Description", 'text_domain' ),
+                'labels'              => $labels,
+                'hierarchical'        => false,
+                'public'              => true,
+                'show_ui'             => true,
+                'show_in_menu'        => true,
+                'menu_position'       => 20,
+                'show_in_admin_bar'   => true,
+                'show_in_nav_menus'   => true,
+                'can_export'          => true,
+                'has_archive'         => true,
+                'exclude_from_search' => false,
+                'publicly_queryable'  => true,
+                'capability_type'     => 'page',
+                'show_in_rest'        => true
+            );
+
+            if( $custom_args ){
+                $post_args = array_merge( $post_args, $custom_args );
+            }
+
+            register_post_type( $type, $post_args );
+        }
     }
 
-    public function register_event_instance_post_type() {
-        $labels = array(
-            'name'                => _x( 'Event Instances', 'Post Type General Name', 'text_domain' ),
-            'singular_name'       => _x( 'Event Instance', 'Post Type Singular Name', 'text_domain' ),
-            'menu_name'           => __( 'Event Instances', 'text_domain' ),
-            'name_admin_bar'      => __( 'Event Instance', 'text_domain' ),
-            'parent_item_colon'   => __( 'Parent Event Instance:', 'text_domain' ),
-            'all_items'           => __( 'All Event Instances', 'text_domain' ),
-            'add_new_item'        => __( 'Add New Event Instance', 'text_domain' ),
-            'add_new'             => __( 'Add New', 'text_domain' ),
-            'new_item'            => __( 'New Event Instance', 'text_domain' ),
-            'edit_item'           => __( 'Edit Event Instance', 'text_domain' ),
-            'update_item'         => __( 'Update Event Instance', 'text_domain' ),
-            'view_item'           => __( 'View Event Instance', 'text_domain' ),
-            'search_items'        => __( 'Search Event Instances', 'text_domain' ),
-            'not_found'           => __( 'Not found', 'text_domain' ),
-            'not_found_in_trash'  => __( 'Not found in Trash', 'text_domain' ),
-        );
-        $args = array(
-            'label'               => __( 'Event Instances', 'text_domain' ),
-            'description'         => __( 'Event Instance Description', 'text_domain' ),
-            'labels'              => $labels,
-            'supports'            => array( ),
-            'hierarchical'        => false,
-            'public'              => true,
-            'show_ui'             => true,
-            'show_in_menu'        => true,
-            'menu_position'       => 20,
-            'show_in_admin_bar'   => true,
-            'show_in_nav_menus'   => true,
-            'can_export'          => true,
-            'has_archive'         => true,
-            'exclude_from_search' => false,
-            'publicly_queryable'  => true,
-            'capability_type'     => 'page',
-            'show_in_rest'        => true
-        );
-        register_post_type( 'event_instance', $args );
-    }
-
-    public function register_event_routes() {
-        register_rest_route('rooftop-events/v2', '/events', array(
-            array(
-                'methods' => WP_REST_Server::READABLE,
-                'callback' => array($this, 'get_events'),
-                'permission_callback' => array( $this, 'get_items_permissions_check' )
-            )
-        ));
-        register_rest_route('rooftop-events/v2', '/events/(?P<id>\d+)', array(
-            array(
-                'methods' => WP_REST_Server::READABLE,
-                'callback' => array($this, 'get_event'),
-                'permission_callback' => array( $this, 'get_items_permissions_check' )
-            )
-        ));
-        register_rest_route('rooftop-events/v2', '/events/(?P<id>\d+)/instances', array(
-            array(
-                'methods' => WP_REST_Server::READABLE,
-                'callback' => array($this, 'get_event_instances'),
-                'permission_callback' => array( $this, 'get_items_permissions_check' )
-            )
-        ));
-        register_rest_route('rooftop-events/v2', '/events/(?P<event_id>\d+)/instances/(?P<id>\d+)', array(
-            array(
-                'methods' => WP_REST_Server::READABLE,
-                'callback' => array($this, 'get_event_instance'),
-                'permission_callback' => array( $this, 'get_items_permissions_check' )
-            )
-        ));
-    }
-
-    function get_events($request) {
-        $events = get_posts(array('post_type' => 'event'));
-        return $events;
-    }
-    function get_event($request) {
-        $id = (int) $request['id'];
-
-        return ['event'];
-    }
-    function get_event_instances($request) {
-        $event_instances = get_posts(array('post_type' => 'event_instance'));
-        $event_instances = ['event_instances'];
-        return $event_instances;
-    }
-    function get_event_instance($request) {
-        $id = $request['id'];
-        $event_id = $request['event_id'];
-
-        $event_instance = ['event_instance'];
-        return $event_instance;
-    }
-
-    function get_items_permissions_check($request) {
-        return true;
+    public function initialise_events_controller() {
+        $events_controller = new WP_REST_Events_Controller('event');
+        $events_controller->register_routes();
     }
 }

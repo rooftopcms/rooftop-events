@@ -2,3 +2,14 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+/*body.wp-admin.post-type-event_price #post-body-content {*/
+    /*display: none;*/
+/*}*/
+body.wp-admin.post-type-event_price #post-body #normal-sortables {
+    display: none;
+}
+
+body.wp-admin.post-type-event_price #post-body #advanced-sortables {
+    margin-top: -20px;
+}

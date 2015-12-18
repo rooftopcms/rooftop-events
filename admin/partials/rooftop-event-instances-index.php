@@ -12,6 +12,7 @@
         
         <tbody>
         <?php foreach( $event_instances as $row ): ?>
+
             <?php
             $instance_meta = get_post_meta($row->ID, 'event_instance_availability', true);
             $instance_meta = is_array($instance_meta) ? $instance_meta : [];
@@ -24,8 +25,8 @@
                 <td><?php echo array_key_exists('starts_at', $instance_meta) ? $instance_meta['starts_at'] : '' ;?></td>
                 <td><?php echo array_key_exists('stops_at', $instance_meta)  ? $instance_meta['stops_at']  : '' ;?></td>
                 <td>
-                    <?php echo $instance_meta['seats_available'] ;?>
                     <?php if( array_key_exists('seats_available', $instance_meta) ): ?>
+                        <?php echo $instance_meta['seats_available'] ;?>
                         remaining <span class="hint">(from a total capacity of <?php echo $instance_meta['seats_capacity'] ;?>)</span>
                     <?php endif;?>
                 </td>
