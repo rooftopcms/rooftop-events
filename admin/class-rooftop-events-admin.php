@@ -152,6 +152,7 @@ class Rooftop_Events_Admin {
                 'meta_key' => 'price_list_id',
                 'meta_value' => get_the_ID(),
                 'post_type' => 'event_price',
+                'post_status' => 'publish',
                 'posts_per_page' => -1
             );
 
@@ -179,7 +180,12 @@ class Rooftop_Events_Admin {
         add_meta_box('event_price_list', "Price List", function() {
             global $post;
 
-            $price_lists = get_posts(array('post_type' => 'event_price_list', 'post_status' => 'publish', 'posts_per_page' => -1));
+            $price_lists_args = array(
+                'post_type' => 'event_price_list',
+                'post_status' => 'publish',
+                'posts_per_page' => -1
+            );
+            $price_lists = get_posts($price_lists_args);
 
             $rooftop_price_list_id = get_post_meta($post->ID, 'price_list_id', true);
 
@@ -195,14 +201,28 @@ class Rooftop_Events_Admin {
         }, 'event_price');
 
         add_meta_box('event_instance_ticket_band', 'Ticket Band', function() {
-            $ticket_bands = get_posts(array('post_type' => 'event_price_band', 'post_status' => 'publish', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => -1));
+            $ticket_bands_args = array(
+                'post_type' => 'event_price_band',
+                'post_status' => 'publish',
+                'orderby' => 'ID',
+                'order' => 'ASC',
+                'posts_per_page' => -1
+            );
+            $ticket_bands = get_posts($ticket_bands_args);
             $selected = (int)get_post_meta(get_the_ID(), 'price_band_id', true);
 
             $this->renderSelect("rooftop[price_list][price_band]", $ticket_bands, $selected);
         }, 'event_price');
 
         add_meta_box('event_instance_ticket_type', 'Ticket Type', function() {
-            $ticket_types = get_posts(array('post_type' => 'event_ticket_type', 'post_status' => 'publish', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => -1));
+            $ticket_types_args = array(
+                'post_type' => 'event_ticket_type',
+                'post_status' => 'publish',
+                'orderby' => 'ID',
+                'order' => 'ASC',
+                'posts_per_page' => -1
+            );
+            $ticket_types = get_posts($ticket_types_args);
             $selected = (int)get_post_meta(get_the_ID(), 'ticket_type_id', true);
 
             $this->renderSelect("rooftop[price_list][ticket_type]", $ticket_types, $selected);
@@ -225,7 +245,15 @@ class Rooftop_Events_Admin {
                 }
 
                 update_post_meta($post_id, 'price_list_id', $price_list_id);
+
             }
+
+            global $wpdb;
+            $table = $wpdb->prefix.'posts';
+            $price_list = get_post($price_list_id);
+            $price_post_title = 'Price: ' . $_POST['rooftop']['price_list']['ticket_price'] . ', Price List: ' . $price_list->post_title;
+
+            $wpdb->query($wpdb->prepare("UPDATE $table SET post_title = %s WHERE ID = %d", $price_post_title, $post_id));
 
             update_post_meta($post_id, 'ticket_price', (int)$_POST['rooftop']['price_list']['ticket_price']);
             update_post_meta($post_id, 'price_band_id', (int)$_POST['rooftop']['price_list']['price_band']);
@@ -238,7 +266,12 @@ class Rooftop_Events_Admin {
             global $post;
 
             $rooftop_event_id = get_post_meta($post->ID, 'event_id', true);
-            $event_posts = get_posts(array('post_type' => 'event'));
+
+            $event_posts_args = array(
+                'post_type' => 'event',
+                'post_status' => 'publish'
+            );
+            $event_posts = get_posts($event_posts_args);
 
             if( !$rooftop_event_id && count($event_posts) ) {
                 $rooftop_event_id = array_key_exists('event_id', $_GET) ? $_GET['event_id'] :  array_values($event_posts)[0]->ID;
@@ -251,7 +284,12 @@ class Rooftop_Events_Admin {
         }, 'event_instance', 'side');
 
         add_meta_box('event_instance_price_list', 'Price Lists', function() {
-            $price_lists = get_posts(array('post_type' => 'event_price_list', 'post_status' => 'publish', 'posts_per_page' => -1));
+            $price_lists_args = array(
+                'post_type' => 'event_price_list',
+                'post_status' => 'publish',
+                'posts_per_page' => -1
+            );
+            $price_lists = get_posts($price_lists_args);
 
             $event_instance_price_list_ids = array_values(get_post_meta(get_the_ID(), 'price_list_ids', false));
             if( count( $event_instance_price_list_ids ) ) {
@@ -301,6 +339,7 @@ class Rooftop_Events_Admin {
 
         // save this instance with a corresponding event_id, so that we can lookup an event's instances using a WP meta query
         $event_id = get_post_meta($post_id, 'event_id', true);
+
         if( !$event_id ) {
             $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event']['event_id'] : null;
 
@@ -313,14 +352,16 @@ class Rooftop_Events_Admin {
             update_post_meta($post_id, 'event_id', $event_id);
         }
 
-        if( array_key_exists( 'price_lists', $_POST['rooftop']['event_instance'] ) ) {
-            $price_list_ids = array_values($_POST['rooftop']['event_instance']['price_lists']);
-        }else {
-            $price_list_ids = array();
-        }
+        if( $_POST ) {
+            if( array_key_exists( 'price_lists', $_POST['rooftop']['event_instance'] ) ) {
+                $price_list_ids = array_values($_POST['rooftop']['event_instance']['price_lists']);
+            }else {
+                $price_list_ids = array();
+            }
 
-        update_post_meta($post_id, 'event_instance_availability', $_POST['rooftop']['event_instance']);
-        update_post_meta($post_id, 'price_list_ids', $price_list_ids);
+            update_post_meta($post_id, 'event_instance_availability', $_POST['rooftop']['event_instance']);
+            update_post_meta($post_id, 'price_list_ids', $price_list_ids);
+        }
     }
 
     public function save_event($post_id, $post, $update) {
@@ -341,6 +382,7 @@ class Rooftop_Events_Admin {
             'meta_key' => 'event_id',
             'meta_value' => get_the_ID(),
             'post_type' => 'event_instance',
+            'post_status' => 'publish',
             'posts_per_page' => -1
         );
 
