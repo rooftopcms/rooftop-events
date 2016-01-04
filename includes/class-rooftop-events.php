@@ -203,6 +203,10 @@ class Rooftop_Events {
 
         $this->loader->add_action( 'init', $plugin_public, 'register_event_post_types' );
 
+        $this->loader->add_filter( 'rest_prepare_event', $plugin_public, 'sanitize_event' );
+        $this->loader->add_filter( 'rest_prepare_event_instance', $plugin_public, 'sanitize_event_instance' );
+        $this->loader->add_filter( 'rest_query_vars', $plugin_public, 'allow_meta_query_args' );
+
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'initialise_events_controller' );
 	}
 

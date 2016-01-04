@@ -163,4 +163,22 @@ class Rooftop_Events_Public {
         $events_controller = new WP_REST_Events_Controller('event');
         $events_controller->register_routes();
     }
+
+    public function allow_meta_query_args( $valid_vars ) {
+        $valid_vars = array_merge( $valid_vars, array( 'meta_key', 'meta_value' ) );
+
+        return $valid_vars;
+    }
+
+    public function sanitize_event( $response ) {
+
+
+        return $response;
+    }
+
+    public function sanitize_event_instance( $response ) {
+        $a = func_get_args();
+
+        return $response;
+    }
 }

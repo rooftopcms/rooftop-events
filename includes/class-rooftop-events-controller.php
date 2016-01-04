@@ -103,6 +103,49 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
 
             'schema' => array( $this, 'get_public_event_schema' ),
         ) );
+
+
+        //
+        register_rest_route( 'rooftop-events/v2', '/price_lists', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_price_lists' ),
+                'permission_callback' => array( $this, 'get_event_permissions_check' ),
+                'args'            => array(
+                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+                ),
+            )
+        ) );
+        register_rest_route( 'rooftop-events/v2', '/price_lists/(?P<id>[\d]+)', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_price_list' ),
+                'permission_callback' => array( $this, 'get_event_permissions_check' ),
+                'args'            => array(
+                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+                ),
+            )
+        ) );
+        register_rest_route( 'rooftop-events/v2', '/price_lists/(?P<price_list_id>[\d]+)/prices', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_prices' ),
+                'permission_callback' => array( $this, 'get_event_permissions_check' ),
+                'args'            => array(
+                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+                ),
+            )
+        ) );
+        register_rest_route( 'rooftop-events/v2', '/price_lists/(?P<price_list_id>[\d]+)/prices/(?P<id>[\d]+)', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_price' ),
+                'permission_callback' => array( $this, 'get_event_permissions_check' ),
+                'args'            => array(
+                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+                ),
+            )
+        ) );
     }
 
     /**
@@ -217,13 +260,17 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         $args['post_status']    = $request['status'];
         $args['s']              = $request['search'];
 
+        $event_id = $request['id'];
+        $args['meta_key']   = 'event_id';
+        $args['meta_value'] = $event_id;
+
+        // Force the post_type argument, since it's not a user input variable.
+        $args['post_type']      = 'event_instance';
+
         if ( is_array( $request['filter'] ) ) {
             $args = array_merge( $args, $request['filter'] );
             unset( $args['filter'] );
         }
-
-        // Force the post_type argument, since it's not a user input variable.
-        $args['post_type'] = $this->post_type;
 
         /**
          * Filter the query arguments for a request.
@@ -235,7 +282,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
          * @param WP_REST_Request $request The request used.
          */
         $args = apply_filters( 'rest_post_query', $args, $request );
-        $query_args = $this->prepare_events_query( $args );
+        $query_args = $this->prepare_event_instances_query( $args );
 
         $posts_query = new WP_Query();
         $query_result = $posts_query->query( $query_args );
@@ -246,7 +293,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
                 continue;
             }
 
-            $data = $this->prepare_event_for_response( $post, $request );
+            $data = $this->prepare_event_instance_for_response( $post, $request );
             $posts[] = $this->prepare_response_for_collection( $data );
         }
 
@@ -259,7 +306,9 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         $max_pages = ceil( $total_posts / $request['per_page'] );
         $response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-        $base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+        $rest_url = rest_url( '/rooftop-events/v2/event_instances/' . $event_id . '/instances');
+        $base = add_query_arg( $request->get_query_params(), $rest_url );
+
         if ( $request['page'] > 1 ) {
             $prev_page = $request['page'] - 1;
             if ( $prev_page > $max_pages ) {
@@ -371,7 +420,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         ) );
         $response = rest_ensure_response( $response );
         $response->set_status( 201 );
-        $response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
+        $response->header( 'Location', rest_url( '/rooftop-events/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 
         return $response;
     }
@@ -646,6 +695,35 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
      * @return array $query_args
      */
     protected function prepare_events_query( $prepared_args = array() ) {
+
+        $valid_vars = array_flip( $this->get_allowed_query_vars() );
+        $query_args = array();
+        foreach ( $valid_vars as $var => $index ) {
+            if ( isset( $prepared_args[ $var ] ) ) {
+                /**
+                 * Filter the query_vars used in `get_events` for the constructed query.
+                 *
+                 * The dynamic portion of the hook name, $var, refers to the query_var key.
+                 *
+                 * @param mixed $prepared_args[ $var ] The query_var value.
+                 *
+                 */
+                $query_args[ $var ] = apply_filters( "rest_query_var-{$var}", $prepared_args[ $var ] );
+            }
+        }
+
+        if ( empty( $query_args['post_status'] ) && 'attachment' === $this->post_type ) {
+            $query_args['post_status'] = 'inherit';
+        }
+
+        if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {
+            $query_args['ignore_sticky_posts'] = true;
+        }
+
+        return $query_args;
+    }
+
+    protected function prepare_event_instances_query( $prepared_args = array() ) {
 
         $valid_vars = array_flip( $this->get_allowed_query_vars() );
         $query_args = array();
@@ -1197,6 +1275,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             'status'       => $post->post_status,
             'type'         => $post->post_type,
             'link'         => get_permalink( $post->ID ),
+            'instances'    => $this->get_instances_for_event( $post, $request )
         );
 
         $schema = $this->get_event_schema();
@@ -1304,6 +1383,13 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         $GLOBALS['post'] = $post;
         setup_postdata( $post );
 
+        $formatted_date = function($time) {
+            $date = new DateTime();
+            return $date->setTimestamp($time)->format("d-m-Y H:i:s");
+        };
+
+        $instance_meta = get_post_meta($post->ID, 'event_instance_availability', true);
+
         // Base fields for every post.
         $data = array(
             'id'           => $post->ID,
@@ -1321,6 +1407,11 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             'status'       => $post->post_status,
             'type'         => $post->post_type,
             'link'         => get_permalink( $post->ID ),
+            'starts_at'    => $this->prepare_date_response( $instance_meta['starts_at'] ),
+            'stops_at'     => $this->prepare_date_response( $instance_meta['stops_at'] ),
+            'seats_capacity'  => $instance_meta['seats_capacity'],
+            'seats_available' => $instance_meta['seats_available'],
+            'prices'          => $this->get_event_instance_price_list( $post, $request )
         );
 
         $schema = $this->get_event_schema();
@@ -1421,7 +1512,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
          * @param WP_Post            $post       Post object.
          * @param WP_REST_Request    $request    Request object.
          */
-        return apply_filters( 'rest_prepare_' . $this->post_type, $response, $post, $request );
+        return apply_filters( 'rest_prepare_' . $post->post_type, $response, $post, $request );
     }
 
     /**
@@ -1431,7 +1522,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
      * @return array Links for the given post.
      */
     protected function prepare_links( $post ) {
-        $base = '/wp/v2/' . $this->get_post_type_base( $this->post_type );
+        $base = '/rooftop-events/v2/' . $this->get_post_type_base( $post->post_type ).'s';
 
         // Entity meta
         $links = array(
@@ -1518,6 +1609,20 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             $links['https://api.w.org/meta'] = array(
                 'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
                 'embeddable' => true,
+            );
+        }
+
+        if ( in_array( $post->post_type, array( 'event' ) ) ) {
+            $links['instances'] = array(
+                'href' => rest_url( trailingslashit( $base ) . $post->ID . '/instances' ),
+                'embeddable' => true
+            );
+        }
+
+        if ( in_array( $post->post_type, array( 'event_price_list' ) ) ) {
+            $links['prices'] = array(
+                'href' => rest_url( 'rooftop-events/v2/price_lists/' . $post->ID . '/prices' ),
+                'embeddable' => true
             );
         }
 
@@ -1620,6 +1725,11 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
                     'context'     => array( 'view', 'edit', 'embed' ),
                     'readonly'    => true,
                 ),
+                'instances'       => array(
+                    'description' => 'An array of event instance objects',
+                    'type'        => 'object',
+                    'context'     => array( 'embed' )
+                )
             ),
         );
 
@@ -1875,4 +1985,251 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
     }
 
+
+    private function get_instances_for_event( $event, $request ) {
+        $args = array();
+
+        $event_id = $event->ID;
+        $args['meta_key']   = 'event_id';
+        $args['meta_value'] = $event_id;
+
+        // Force the post_type argument, since it's not a user input variable.
+        $args['post_type']      = 'event_instance';
+
+        $posts_query = new WP_Query();
+        $posts_results = $posts_query->query( $args );
+
+        $instances = [];
+        foreach( $posts_results as $instance ) {
+            $instances[] = $this->prepare_event_instance_for_response( $instance, $request );
+        }
+
+        wp_reset_postdata();
+
+        return $instances;
+    }
+
+    private function get_event_instance_price_list( $event_instance, $request ) {
+        $price_list_id = get_post_meta( $event_instance->ID, 'price_list_id', true );
+        $price_list_post = get_post( $price_list_id );
+
+        $prices_args = array(
+            'post_type' => 'event_price',
+            'meta_key' => 'price_list_id',
+            'meta_value' => $price_list_post->ID,
+            'post_status' => 'publish'
+        );
+        $price_posts = get_posts( $prices_args );
+        $prices = $this->prepare_prices_for_response( $price_posts, $request );
+
+        $price_list = array(
+            'title' => $price_list_post->post_title,
+            'prices' => $prices
+        );
+
+        return $price_list;
+    }
+
+    private function prepare_prices_for_response( $prices, $request ) {
+        $prices_array = [];
+
+        foreach( $prices as $price ) {
+            $prices_array[] = $this->prepare_price_for_response( $price, $request );
+        }
+
+        return $prices_array;
+    }
+
+    public function get_price_lists( $request ) {
+        $args                   = array();
+        $args['author']         = $request['author'];
+        $args['paged']          = $request['page'];
+        $args['posts_per_page'] = $request['per_page'];
+        $args['post_parent']    = $request['parent'];
+        $args['post_status']    = $request['status'];
+        $args['s']              = $request['search'];
+
+        if ( is_array( $request['filter'] ) ) {
+            $args = array_merge( $args, $request['filter'] );
+            unset( $args['filter'] );
+        }
+
+        // Force the post_type argument, since it's not a user input variable.
+        $args['post_type'] = 'event_price_list';
+
+        /**
+         * Filter the query arguments for a request.
+         *
+         * Enables adding extra arguments or setting defaults for a post
+         * collection request.
+         *
+         * @param array           $args    Key value array of query var to query value.
+         * @param WP_REST_Request $request The request used.
+         */
+        $args = apply_filters( 'rest_post_query', $args, $request );
+        $query_args = $this->prepare_events_query( $args );
+
+        $posts_query = new WP_Query();
+        $query_result = $posts_query->query( $query_args );
+
+        $price_lists = array();
+        foreach ( $query_result as $price_list ) {
+            if ( ! $this->check_read_permission( $price_list ) ) {
+                continue;
+            }
+
+            $data = $this->prepare_event_for_response( $price_list, $request );
+            $price_lists[] = $this->prepare_response_for_collection( $data );
+        }
+
+        $response = rest_ensure_response( $price_lists );
+
+        return $response;
+    }
+    public function get_price_list( $request ) {
+        $id = (int) $request['id'];
+        $post = get_post( $id );
+
+        if ( empty( $id ) || empty( $post->ID ) || 'event_price_list' !== $post->post_type ) {
+            return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
+        }
+
+        $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+        $data = $this->prepare_price_list_for_response( $post, $request );
+        $response = rest_ensure_response( $data );
+
+        $response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+
+        return $response;
+    }
+    public function get_prices( $request ) {
+        $args                   = array();
+        $args['author']         = $request['author'];
+        $args['paged']          = $request['page'];
+        $args['posts_per_page'] = $request['per_page'];
+        $args['post_parent']    = $request['parent'];
+        $args['post_status']    = $request['status'];
+        $args['s']              = $request['search'];
+        $args['meta_key']       = 'price_list_id';
+        $args['meta_value']     = $request['price_list_id'];
+
+        if ( is_array( $request['filter'] ) ) {
+            $args = array_merge( $args, $request['filter'] );
+            unset( $args['filter'] );
+        }
+
+        // Force the post_type argument, since it's not a user input variable.
+        $args['post_type'] = 'event_price';
+
+        $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+        /**
+         * Filter the query arguments for a request.
+         *
+         * Enables adding extra arguments or setting defaults for a post
+         * collection request.
+         *
+         * @param array           $args    Key value array of query var to query value.
+         * @param WP_REST_Request $request The request used.
+         */
+        $args = apply_filters( 'rest_post_query', $args, $request );
+        $query_args = $this->prepare_events_query( $args );
+
+        $posts_query = new WP_Query();
+        $query_result = $posts_query->query( $query_args );
+
+        $price_lists = array();
+
+        foreach ( $query_result as $price_list ) {
+            if ( ! $this->check_read_permission( $price_list ) ) {
+                continue;
+            }
+
+            $data = $this->prepare_price_for_response( $price_list, $request );
+            $price_lists[] = $this->prepare_response_for_collection( $data );
+        }
+
+        $response = new WP_REST_Response( $price_lists, 200 );
+
+        return $response;
+    }
+    public function get_price( $request ) {
+        $id = (int) $request['id'];
+        $post = get_post( $id );
+
+        if ( empty( $id ) || empty( $post->ID ) || 'event_price' !== $post->post_type ) {
+            return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
+        }
+
+        $data = $this->prepare_price_for_response( $post, $request );
+        $data->data['ticket_price'] = get_post_meta( $post->ID, 'ticket_price', true );
+
+        $price_band_id = get_post_meta( $post->ID, 'price_band_id', true );
+        $ticket_type_id = get_post_meta( $post->ID, 'ticket_type_id', true );
+
+        $price_band = get_post( $price_band_id );
+        $ticket_type = get_post( $ticket_type_id );
+
+        $data->data['price_band'] = $price_band->post_title;
+        $data->data['ticket_type'] = $ticket_type->post_title;
+
+        $response = rest_ensure_response( $data );
+
+        $response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+
+        return $response;
+    }
+
+    private function prepare_price_list_for_response( $post, $request ) {
+        $data = array(
+            'id'           => $post->ID,
+            'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+            'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
+            'guid'         => array(
+                /** This filter is documented in wp-includes/post-template.php */
+                'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+                'raw'      => $post->guid,
+            ),
+            'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+            'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+            'slug'         => $post->post_name,
+            'status'       => $post->post_status,
+            'type'         => $post->post_type,
+            'title'        => array('rendered' => $post->post_title),
+            'link'         => get_permalink( $post->ID ),
+        );
+
+        $response = new WP_REST_Response( $data, 200 );
+
+        $response->add_links( $this->prepare_links( $post ) );
+
+        return apply_filters( 'rest_prepare_' . $post->post_type, $response, $post, $request );
+    }
+    private function prepare_price_for_response( $post, $request ) {
+        $data = array(
+            'id'           => $post->ID,
+            'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+            'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
+            'guid'         => array(
+                /** This filter is documented in wp-includes/post-template.php */
+                'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+                'raw'      => $post->guid,
+            ),
+            'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+            'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+            'slug'         => $post->post_name,
+            'status'       => $post->post_status,
+            'type'         => $post->post_type,
+            'title'        => array('rendered' => $post->post_title),
+            'link'         => get_permalink( $post->ID ),
+        );
+
+        // Wrap the data in a response object.
+        $response = new WP_REST_Response( $data, 200 );
+
+        $response->add_links( $this->prepare_links( $post ) );
+
+        return apply_filters( 'rest_prepare_' . $post->post_type, $response, $post, $request );
+    }
 }
