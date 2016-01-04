@@ -121,6 +121,8 @@ class Rooftop_Events {
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . '../rest-api/lib/endpoints/class-wp-rest-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-events-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-prices-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-tickets-controller.php';
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/rooftop_model.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event.php';

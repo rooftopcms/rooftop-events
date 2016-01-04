@@ -162,6 +162,12 @@ class Rooftop_Events_Public {
     public function initialise_events_controller() {
         $events_controller = new WP_REST_Events_Controller('event');
         $events_controller->register_routes();
+
+        $prices_controller = new WP_REST_Prices_Controller('event_price_band');
+        $prices_controller->register_routes();
+
+        $tickets_controller = new WP_REST_Tickets_Controller('event_price_type');
+        $tickets_controller->register_routes();
     }
 
     public function allow_meta_query_args( $valid_vars ) {

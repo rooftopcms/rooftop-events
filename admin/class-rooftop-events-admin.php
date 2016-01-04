@@ -309,7 +309,7 @@ class Rooftop_Events_Admin {
                 $instance = get_post($_GET['post']);
                 $instance_meta = get_post_meta($instance->ID, 'event_instance_availability', true);
                 // ensure the event_instance_availability is an array (get_post_meta will return "" if the post didn't have anything stored against it previously
-                $instance_meta = is_array($instance_meta) ? $instance_meta : [];
+                $instance_meta =     is_array($instance_meta) ? $instance_meta : [];
 
                 $starts_at = array_key_exists('starts_at', $instance_meta) ? $instance_meta['starts_at'] : $formatted_date(time());
                 $stops_at  = array_key_exists('stops_at', $instance_meta)  ? $instance_meta['stops_at'] : $formatted_date(time());

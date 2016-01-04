@@ -1,6 +1,6 @@
 <?php
 
-class WP_REST_Events_Controller extends WP_REST_Controller {
+class WP_REST_Tickets_Controller extends WP_REST_Controller {
 
     protected $post_type;
 
@@ -15,522 +15,26 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
 
         $base = $this->get_post_type_base( $this->post_type ) . 's';
 
-        register_rest_route( 'rooftop-events/v2', '/' . $base, array(
+        register_rest_route( 'rooftop-events/v2', '/ticket_types', array(
             array(
                 'methods'         => WP_REST_Server::READABLE,
-                'callback'        => array( $this, 'get_events' ),
-                'permission_callback' => array( $this, 'get_events_permissions_check' ),
-                'args'            => $this->get_collection_params(),
-            ),
-            array(
-                'methods'         => WP_REST_Server::CREATABLE,
-                'callback'        => array( $this, 'create_instance' ),
-                'permission_callback' => array( $this, 'create_event_permissions_check' ),
-                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-            ),
-
-            'schema' => array( $this, 'get_public_event_schema' ),
-        ) );
-        register_rest_route( 'rooftop-events/v2', '/' . $base . '/(?P<id>[\d]+)', array(
-            array(
-                'methods'         => WP_REST_Server::READABLE,
-                'callback'        => array( $this, 'get_event' ),
+                'callback'        => array( $this, 'get_ticket_types' ),
                 'permission_callback' => array( $this, 'get_event_permissions_check' ),
                 'args'            => array(
                     'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
                 ),
-            ),
-            array(
-                'methods'         => WP_REST_Server::EDITABLE,
-                'callback'        => array( $this, 'update_event' ),
-                'permission_callback' => array( $this, 'update_event_permissions_check' ),
-                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-            ),
-            array(
-                'methods'  => WP_REST_Server::DELETABLE,
-                'callback' => array( $this, 'delete_instance' ),
-                'permission_callback' => array( $this, 'delete_event_permissions_check' ),
-                'args'     => array(
-                    'force'    => array(
-                        'default'      => false,
-                    ),
-                ),
-            ),
-
-            'schema' => array( $this, 'get_public_event_schema' ),
+            )
         ) );
-        register_rest_route( 'rooftop-events/v2', '/' . $base . '/(?P<id>[\d]+)/instances', array(
+        register_rest_route( 'rooftop-events/v2', '/ticket_types/(?P<id>[\d]+)', array(
             array(
                 'methods'         => WP_REST_Server::READABLE,
-                'callback'        => array( $this, 'get_instances' ),
-                'permission_callback' => array( $this, 'get_events_permissions_check' ),
-                'args'            => $this->get_collection_params(),
-            ),
-            array(
-                'methods'         => WP_REST_Server::CREATABLE,
-                'callback'        => array( $this, 'create_instances' ),
-                'permission_callback' => array( $this, 'create_event_permissions_check' ),
-                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-            ),
-
-            'schema' => array( $this, 'get_public_event_schema' ),
-        ) );
-        register_rest_route( 'rooftop-events/v2', '/' . $base . '/(?P<event_id>[\d]+)/instances/(?P<id>[\d]+)', array(
-            array(
-                'methods'         => WP_REST_Server::READABLE,
-                'callback'        => array( $this, 'get_instance' ),
+                'callback'        => array( $this, 'get_ticket_type' ),
                 'permission_callback' => array( $this, 'get_event_permissions_check' ),
                 'args'            => array(
                     'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
                 ),
-            ),
-            array(
-                'methods'         => WP_REST_Server::EDITABLE,
-                'callback'        => array( $this, 'update_instance' ),
-                'permission_callback' => array( $this, 'update_event_permissions_check' ),
-                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-            ),
-            array(
-                'methods'  => WP_REST_Server::DELETABLE,
-                'callback' => array( $this, 'delete_event_instance' ),
-                'permission_callback' => array( $this, 'delete_event_permissions_check' ),
-                'args'     => array(
-                    'force'    => array(
-                        'default'      => false,
-                    ),
-                ),
-            ),
-
-            'schema' => array( $this, 'get_public_event_schema' ),
+            )
         ) );
-    }
-
-    /**
-     * Get a collection of posts.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function get_events( $request ) {
-        $args                   = array();
-        $args['author']         = $request['author'];
-        $args['paged']          = $request['page'];
-        $args['posts_per_page'] = $request['per_page'];
-        $args['post_parent']    = $request['parent'];
-        $args['post_status']    = $request['status'];
-        $args['s']              = $request['search'];
-
-        if ( is_array( $request['filter'] ) ) {
-            $args = array_merge( $args, $request['filter'] );
-            unset( $args['filter'] );
-        }
-
-        // Force the post_type argument, since it's not a user input variable.
-        $args['post_type'] = $this->post_type;
-
-        /**
-         * Filter the query arguments for a request.
-         *
-         * Enables adding extra arguments or setting defaults for a post
-         * collection request.
-         *
-         * @param array           $args    Key value array of query var to query value.
-         * @param WP_REST_Request $request The request used.
-         */
-        $args = apply_filters( 'rest_post_query', $args, $request );
-        $query_args = $this->prepare_events_query( $args );
-
-        $posts_query = new WP_Query();
-        $query_result = $posts_query->query( $query_args );
-
-        $posts = array();
-        foreach ( $query_result as $post ) {
-            if ( ! $this->check_read_permission( $post ) ) {
-                continue;
-            }
-
-            $data = $this->prepare_event_for_response( $post, $request );
-            $posts[] = $this->prepare_response_for_collection( $data );
-        }
-
-        $response = rest_ensure_response( $posts );
-        $count_query = new WP_Query();
-        unset( $query_args['paged'] );
-        $query_result = $count_query->query( $query_args );
-        $total_posts = $count_query->found_posts;
-        $response->header( 'X-WP-Total', (int) $total_posts );
-        $max_pages = ceil( $total_posts / $request['per_page'] );
-        $response->header( 'X-WP-TotalPages', (int) $max_pages );
-
-        $base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
-        if ( $request['page'] > 1 ) {
-            $prev_page = $request['page'] - 1;
-            if ( $prev_page > $max_pages ) {
-                $prev_page = $max_pages;
-            }
-            $prev_link = add_query_arg( 'page', $prev_page, $base );
-            $response->link_header( 'prev', $prev_link );
-        }
-        if ( $max_pages > $request['page'] ) {
-            $next_page = $request['page'] + 1;
-            $next_link = add_query_arg( 'page', $next_page, $base );
-            $response->link_header( 'next', $next_link );
-        }
-
-        return $response;
-    }
-
-    /**
-     * Get a single post.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function get_event( $request ) {
-        $id = (int) $request['id'];
-        $post = get_post( $id );
-
-        if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-            return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
-        }
-
-        $data = $this->prepare_event_for_response( $post, $request );
-        $response = rest_ensure_response( $data );
-
-        $response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-
-        return $response;
-    }
-
-    /**
-     * Get a collection of posts.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function get_instances( $request ) {
-        $args                   = array();
-        $args['author']         = $request['author'];
-        $args['paged']          = $request['page'];
-        $args['posts_per_page'] = $request['per_page'];
-        $args['post_parent']    = $request['parent'];
-        $args['post_status']    = $request['status'];
-        $args['s']              = $request['search'];
-
-        $event_id = $request['id'];
-        $args['meta_key']   = 'event_id';
-        $args['meta_value'] = $event_id;
-
-        // Force the post_type argument, since it's not a user input variable.
-        $args['post_type']      = 'event_instance';
-
-        if ( is_array( $request['filter'] ) ) {
-            $args = array_merge( $args, $request['filter'] );
-            unset( $args['filter'] );
-        }
-
-        /**
-         * Filter the query arguments for a request.
-         *
-         * Enables adding extra arguments or setting defaults for a post
-         * collection request.
-         *
-         * @param array           $args    Key value array of query var to query value.
-         * @param WP_REST_Request $request The request used.
-         */
-        $args = apply_filters( 'rest_post_query', $args, $request );
-        $query_args = $this->prepare_event_instances_query( $args );
-
-        $posts_query = new WP_Query();
-        $query_result = $posts_query->query( $query_args );
-
-        $posts = array();
-        foreach ( $query_result as $post ) {
-            if ( ! $this->check_read_permission( $post ) ) {
-                continue;
-            }
-
-            $data = $this->prepare_event_instance_for_response( $post, $request );
-            $posts[] = $this->prepare_response_for_collection( $data );
-        }
-
-        $response = rest_ensure_response( $posts );
-        $count_query = new WP_Query();
-        unset( $query_args['paged'] );
-        $query_result = $count_query->query( $query_args );
-        $total_posts = $count_query->found_posts;
-        $response->header( 'X-WP-Total', (int) $total_posts );
-        $max_pages = ceil( $total_posts / $request['per_page'] );
-        $response->header( 'X-WP-TotalPages', (int) $max_pages );
-
-        $rest_url = rest_url( '/rooftop-events/v2/event_instances/' . $event_id . '/instances');
-        $base = add_query_arg( $request->get_query_params(), $rest_url );
-
-        if ( $request['page'] > 1 ) {
-            $prev_page = $request['page'] - 1;
-            if ( $prev_page > $max_pages ) {
-                $prev_page = $max_pages;
-            }
-            $prev_link = add_query_arg( 'page', $prev_page, $base );
-            $response->link_header( 'prev', $prev_link );
-        }
-        if ( $max_pages > $request['page'] ) {
-            $next_page = $request['page'] + 1;
-            $next_link = add_query_arg( 'page', $next_page, $base );
-            $response->link_header( 'next', $next_link );
-        }
-
-        return $response;
-    }
-
-    /**
-     * Get a single post.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function get_instance( $request ) {
-        $id = (int) $request['id'];
-        $event_id = (int) $request['event_id'];
-
-        $post = get_post( $id );
-
-        $instance_belongs_to_event_id = (int)get_post_meta( $post->ID, 'event_id', true );
-        if ( empty( $id ) || empty( $post->ID ) || 'event_instance' !== $post->post_type || $event_id !== $instance_belongs_to_event_id ) {
-            return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
-        }
-
-        $response = $this->prepare_event_instance_for_response( $post, $request );
-
-        $response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-
-        return $response;
-    }
-
-    /**
-     * Create a single post.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function create_instance( $request ) {
-        if ( ! empty( $request['id'] ) ) {
-            return new WP_Error( 'rest_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
-        }
-
-        $post = $this->prepare_event_for_database( $request );
-        if ( is_wp_error( $post ) ) {
-            return $post;
-        }
-
-        $post->post_type = $this->post_type;
-        $post_id = wp_insert_post( $post, true );
-
-        if ( is_wp_error( $post_id ) ) {
-
-            if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ) ) ) {
-                $post_id->add_data( array( 'status' => 500 ) );
-            } else {
-                $post_id->add_data( array( 'status' => 400 ) );
-            }
-            return $post_id;
-        }
-        $post->ID = $post_id;
-
-        $schema = $this->get_event_schema();
-
-        if ( ! empty( $schema['properties']['sticky'] ) ) {
-            if ( ! empty( $request['sticky'] ) ) {
-                stick_post( $post_id );
-            } else {
-                unstick_post( $post_id );
-            }
-        }
-
-        if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
-            $this->handle_featured_image( $request['featured_image'], $post->ID );
-        }
-
-        if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
-            set_post_format( $post, $request['format'] );
-        }
-
-        if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
-            $this->handle_template( $request['template'], $post->ID );
-        }
-
-        $this->update_additional_fields_for_object( get_post( $post_id ), $request );
-
-        /**
-         * Fires after a single post is created or updated via the REST API.
-         *
-         * @param object          $post      Inserted Post object (not a WP_Post object).
-         * @param WP_REST_Request $request   Request object.
-         * @param bool            $creating  True when creating post, false when updating.
-         */
-        do_action( 'rest_insert_post', $post, $request, true );
-
-        $response = $this->get_instance( array(
-            'id'      => $post_id,
-            'context' => 'edit',
-        ) );
-        $response = rest_ensure_response( $response );
-        $response->set_status( 201 );
-        $response->header( 'Location', rest_url( '/rooftop-events/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
-
-        return $response;
-    }
-
-    /**
-     * Update a single post.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_Error|WP_REST_Response
-     */
-    public function update_instance( $request ) {
-        $id = (int) $request['id'];
-        $post = get_post( $id );
-
-        if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-            return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 400 ) );
-        }
-
-        $post = $this->prepare_event_for_database( $request );
-        if ( is_wp_error( $post ) ) {
-            return $post;
-        }
-        // convert the post object to an array, otherwise wp_update_post will expect non-escaped input
-        $post_id = wp_update_post( (array) $post, true );
-        if ( is_wp_error( $post_id ) ) {
-            if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ) ) ) {
-                $post_id->add_data( array( 'status' => 500 ) );
-            } else {
-                $post_id->add_data( array( 'status' => 400 ) );
-            }
-            return $post_id;
-        }
-
-        $schema = $this->get_event_schema();
-
-        if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
-            set_post_format( $post, $request['format'] );
-        }
-
-        if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
-            $this->handle_featured_image( $request['featured_image'], $post_id );
-        }
-
-        if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
-            if ( ! empty( $request['sticky'] ) ) {
-                stick_post( $post_id );
-            } else {
-                unstick_post( $post_id );
-            }
-        }
-
-        if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
-            $this->handle_template( $request['template'], $post->ID );
-        }
-
-        $this->update_additional_fields_for_object( get_post( $post_id ), $request );
-
-        /**
-         * @TODO: Enable rest_insert_post() action after.
-         * Media Controller has been migrated to new style.
-         *
-         * do_action( 'rest_insert_post', $post, $request );
-         */
-
-        /* This action is documented in lib/endpoints/class-wp-rest-controller.php */
-        do_action( 'rest_insert_post', $post, $request, false );
-
-        return $this->get_instance( array(
-            'id'      => $post_id,
-            'context' => 'edit',
-        ));
-    }
-
-    /**
-     * Delete a single post.
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_REST_Response|WP_Error
-     */
-    public function delete_instance( $request ) {
-        $id = (int) $request['id'];
-        $force = (bool) $request['force'];
-
-        $post = get_post( $id );
-
-        if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-            return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
-        }
-
-        $supports_trash = ( EMPTY_TRASH_DAYS > 0 );
-        if ( $post->post_type === 'attachment' ) {
-            $supports_trash = $supports_trash && MEDIA_TRASH;
-        }
-
-        /**
-         * Filter whether a post is trashable.
-         *
-         * Return false to disable trash support for the post.
-         *
-         * @param boolean $supports_trash Whether the post type support trashing.
-         * @param WP_Post $post           The Post object being considered for trashing support.
-         */
-        $supports_trash = apply_filters( 'rest_post_trashable', $supports_trash, $post );
-
-        if ( ! $this->check_delete_permission( $post ) ) {
-            return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => rest_authorization_required_code() ) );
-        }
-
-        $request = new WP_REST_Request( 'GET', '/wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID );
-        $request->set_param( 'context', 'edit' );
-        $response = rest_do_request( $request );
-
-        // If we're forcing, then delete permanently.
-        if ( $force ) {
-            $result = wp_delete_post( $id, true );
-            $status = 'deleted';
-        } else {
-            // If we don't support trashing for this type, error out.
-            if ( ! $supports_trash ) {
-                return new WP_Error( 'rest_trash_not_supported', __( 'The post does not support trashing.' ), array( 'status' => 501 ) );
-            }
-
-            // Otherwise, only trash if we haven't already.
-            if ( 'trash' === $post->post_status ) {
-                return new WP_Error( 'rest_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
-            }
-
-            // (Note that internally this falls through to `wp_delete_post` if
-            // the trash is disabled.)
-            $result = wp_trash_post( $id );
-            $status = 'trashed';
-        }
-
-        if ( ! $result ) {
-            return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
-        }
-
-        $data = $response->get_data();
-        $data = array(
-            'data'  => $data,
-            $status => true,
-        );
-        $response->set_data( $data );
-
-        /**
-         * Fires after a single post is deleted or trashed via the REST API.
-         *
-         * @param object          $post    The deleted or trashed post.
-         * @param array           $data    The response data.
-         * @param WP_REST_Request $request The request sent to the API.
-         */
-        do_action( 'rest_delete_post', $post, $data, $request );
-
-        return $response;
     }
 
     /**
@@ -1231,6 +735,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             'status'       => $post->post_status,
             'type'         => $post->post_type,
             'link'         => get_permalink( $post->ID ),
+            'instances'    => $this->get_instances_for_event( $post, $request )
         );
 
         $schema = $this->get_event_schema();
@@ -1366,6 +871,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             'stops_at'     => $this->prepare_date_response( $instance_meta['stops_at'] ),
             'seats_capacity'  => $instance_meta['seats_capacity'],
             'seats_available' => $instance_meta['seats_available'],
+            'prices'          => $this->get_event_instance_price_list( $post, $request )
         );
 
         $schema = $this->get_event_schema();
@@ -1453,6 +959,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
 
         // Wrap the data in a response object.
         $response = rest_ensure_response( $data );
+
         $response->add_links( $this->prepare_links( $post ) );
 
         /**
@@ -1475,12 +982,7 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
      * @return array Links for the given post.
      */
     protected function prepare_links( $post ) {
-        if( $post->post_type == 'event_instance' ) {
-            $event_id = get_post_meta( $post->ID, 'event_id', true );
-            $base = "/rooftop-events/v2/events/$event_id/instances";
-        }else {
-            $base = '/rooftop-events/v2/' . $this->get_post_type_base( $post->post_type ).'s';
-        }
+        $base = '/rooftop-events/v2/' . $this->get_post_type_base( $post->post_type ).'s';
 
         // Entity meta
         $links = array(
@@ -1577,9 +1079,20 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
             );
         }
 
-        if ( in_array( $post->post_type, array( 'event_instance' ) ) ) {
-            $links['price_list'] = array(
-                'href' => rest_url( 'rooftop-events/v2' . '/price_lists?parent=' . $post->ID ),
+        if ( in_array( $post->post_type, array( 'event_price_list' ) ) ) {
+            $links['prices'] = array(
+                'href' => rest_url( 'rooftop-events/v2/price_lists/' . $post->ID . '/prices' ),
+                'embeddable' => true
+            );
+        }
+
+        if ( in_array( $post->post_type, array( 'event_price' ) ) ) {
+            $links['ticket_type'] = array(
+                'href' => rest_url( 'rooftop-events/v2/ticket_types?parent=' . $post->ID ),
+                'embeddable' => true
+            );
+            $links['price_band'] = array(
+                'href' => rest_url( 'rooftop-events/v2/price_bands?parent=' . $post->ID ),
                 'embeddable' => true
             );
         }
@@ -1943,59 +1456,8 @@ class WP_REST_Events_Controller extends WP_REST_Controller {
         return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
     }
 
-
-    private function get_instances_for_event( $event, $request ) {
-        $args = array();
-
-        $event_id = $event->ID;
-        $args['meta_key']   = 'event_id';
-        $args['meta_value'] = $event_id;
-
-        // Force the post_type argument, since it's not a user input variable.
-        $args['post_type']      = 'event_instance';
-
-        $posts_query = new WP_Query();
-        $posts_results = $posts_query->query( $args );
-
-        $instances = [];
-        foreach( $posts_results as $instance ) {
-            $instances[] = $this->prepare_event_instance_for_response( $instance, $request );
-        }
-
-        wp_reset_postdata();
-
-        return $instances;
+    public function get_ticket_type( $request ) {
+        $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+        $f = 1;
     }
-
-    private function get_event_instance_price_list( $event_instance, $request ) {
-        $price_list_id = get_post_meta( $event_instance->ID, 'price_list_id', true );
-        $price_list_post = get_post( $price_list_id );
-
-        $prices_args = array(
-            'post_type' => 'event_price',
-            'meta_key' => 'price_list_id',
-            'meta_value' => $price_list_post->ID,
-            'post_status' => 'publish'
-        );
-        $price_posts = get_posts( $prices_args );
-        $prices = $this->prepare_prices_for_response( $price_posts, $request );
-
-        $price_list = array(
-            'title' => $price_list_post->post_title,
-            'prices' => $prices
-        );
-
-        return $price_list;
-    }
-
-    private function prepare_prices_for_response( $prices, $request ) {
-        $prices_array = [];
-
-        foreach( $prices as $price ) {
-            $prices_array[] = $this->prepare_price_for_response( $price, $request );
-        }
-
-        return $prices_array;
-    }
-
 }
