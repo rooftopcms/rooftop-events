@@ -291,15 +291,15 @@ class Rooftop_Events_Admin {
             );
             $price_lists = get_posts($price_lists_args);
 
-            $event_instance_price_list_ids = array_values(get_post_meta(get_the_ID(), 'price_list_ids', false));
-            if( count( $event_instance_price_list_ids ) ) {
-                $event_instance_price_list_ids = $event_instance_price_list_ids[0];
+            $event_instance_price_list_id = get_post_meta( get_the_ID(), 'price_list_id', true );
+            if( is_array( $event_instance_price_list_id ) && count( $event_instance_price_list_id ) ) {
+                $event_instance_price_list_id = $event_instance_price_list_id[0];
             }
 
-            $this->renderSelect("rooftop[event_instance][price_lists][]", $price_lists, $event_instance_price_list_ids);
+            $this->renderSelect("rooftop[event_instance][price_list_id]", $price_lists, $event_instance_price_list_id);
         }, 'event_instance', 'side');
 
-        add_meta_box('event_instance_details', 'Event Instance', function() {
+        add_meta_box('event_instance_details', 'Event Instances', function() {
             $formatted_date = function($time) {
                 $date = new DateTime();
                 return $date->setTimestamp($time)->format("d-m-Y H:i:s");
@@ -353,14 +353,14 @@ class Rooftop_Events_Admin {
         }
 
         if( $_POST ) {
-            if( array_key_exists( 'price_lists', $_POST['rooftop']['event_instance'] ) ) {
-                $price_list_ids = array_values($_POST['rooftop']['event_instance']['price_lists']);
+            if( array_key_exists( 'price_list_id', $_POST['rooftop']['event_instance'] ) ) {
+                $price_list_id = $_POST['rooftop']['event_instance']['price_list_id'];
             }else {
-                $price_list_ids = array();
+                $price_list_id = null;
             }
 
             update_post_meta($post_id, 'event_instance_availability', $_POST['rooftop']['event_instance']);
-            update_post_meta($post_id, 'price_list_ids', $price_list_ids);
+            update_post_meta($post_id, 'price_list_id', $price_list_id);
         }
     }
 
@@ -386,11 +386,11 @@ class Rooftop_Events_Admin {
             'posts_per_page' => -1
         );
 
-        $event_instances = get_posts($event_instance_args);
+        $event_instances = get_posts( $event_instance_args );
         require_once plugin_dir_path( __FILE__ ) . 'partials/rooftop-event-instances-index.php';
     }
 
-    private function renderSelect($name, $collection, $selected = null) {
+    private function renderSelect( $name, $collection, $selected = null, $options = array() ) {
         require plugin_dir_path( __FILE__ ) . 'partials/_select.php';
         unset($collection);
     }
