@@ -43,9 +43,7 @@ class WP_REST_Prices_Controller extends Rooftop_Controller {
                 'methods'         => WP_REST_Server::READABLE,
                 'callback'        => array( $this, 'get_price_lists' ),
                 'permission_callback' => array( $this, 'get_items_permissions_check' ),
-                'args'            => array(
-                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
-                ),
+                'args'            => $this->get_collection_params(),
             ),
             array(
                 'methods'         => WP_REST_Server::CREATABLE,
@@ -85,9 +83,7 @@ class WP_REST_Prices_Controller extends Rooftop_Controller {
                 'methods'         => WP_REST_Server::READABLE,
                 'callback'        => array( $this, 'get_prices' ),
                 'permission_callback' => array( $this, 'get_items_permissions_check' ),
-                'args'            => array(
-                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
-                ),
+                'args'            => $this->get_collection_params(),
             ),
             array(
                 'methods'         => WP_REST_Server::CREATABLE,
