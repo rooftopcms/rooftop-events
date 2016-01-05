@@ -9,9 +9,22 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
     }
 
     public function event_links_filter( $links, $post ) {
+        $prefix = "rooftop-events/v2";
+        $base = "$prefix/{$post->post_type}s";
+
         $links['instances'] = array(
-            'href' => rest_url( 'rooftop-events/v2/' . 'events/' . $post->ID . '/instances'),
+            'href' => rest_url( $base . '/' . $post->ID . '/instances'),
             'embeddable' => true
+        );
+
+        $links['self'] = array(
+            'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
+        );
+        $links['collection'] = array(
+            'href'   => rest_url( $base ),
+        );
+        $links['about'] = array(
+            'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
         );
 
         return $links;
@@ -69,17 +82,12 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
     }
 
     public function get_events( $request ) {
-        $this->post_type = 'event';
         return $this->get_items( $request );
     }
     public function get_event( $request ) {
-        $this->post_type = 'event';
-
         return $this->get_item( $request );
     }
     public function create_event( $request ) {
-        $this->post_type = 'event';
-
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
             $content_attributes = $request['content'];
             if( $content_attributes && array_key_exists( 'content', $content_attributes['basic'] ) ) {
@@ -105,8 +113,6 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
         return $this->create_item( $request );
     }
     public function update_event( $request ) {
-        $this->post_type = 'event';
-
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
             $meta_data = $request['post_meta'];
 
@@ -123,7 +129,6 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
         return $this->update_item( $request );
     }
     public function delete_event( $request ) {
-        $this->post_type = 'event';
         return $this->delete_item( $request );
     }
 

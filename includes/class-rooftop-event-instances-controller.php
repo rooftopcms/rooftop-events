@@ -9,9 +9,24 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function event_instance_links_filter( $links, $post ) {
+        $event_id = get_post_meta( $post->ID, 'event_id', true );
+
+        $prefix = "rooftop-events/v2";
+        $base = "$prefix/events/$event_id/instances";
+
         $links['price_list'] = array(
             'href' => rest_url( 'rooftop-events/v2/' . 'price_lists?parent=' . $post->ID),
             'embeddable' => true
+        );
+
+        $links['self'] = array(
+            'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
+        );
+		$links['collection'] = array(
+            'href'   => rest_url( $base ),
+        );
+	    $links['about'] = array(
+            'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
         );
 
         return $links;
@@ -21,9 +36,6 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
      * Register the routes for the objects of the controller.
      */
     public function register_routes() {
-
-        $base = $this->get_post_type_base( $this->post_type ) . 's';
-
         register_rest_route( 'rooftop-events/v2', '/events/(?P<event_id>[\d]+)/instances', array(
             array(
                 'methods'         => WP_REST_Server::READABLE,
@@ -69,8 +81,6 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function get_event_instances( $request ) {
-        $this->post_type = 'event_instance';
-
         add_filter( 'rest_post_query', function( $args, $request ) {
             if( $args['post_type'] === 'event_instance' ) {
                 $args['meta_key']   = 'event_id';
@@ -83,8 +93,6 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
         return $this->get_items( $request );
     }
     public function get_event_instance( $request ) {
-        $this->post_type = 'event_instance';
-
         add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $availability = get_post_meta( $post->ID, 'event_instance_availability', false );
 
@@ -100,8 +108,6 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
         return $this->get_item( $request );
     }
     public function create_event_instance( $request ) {
-        $this->post_type = 'event_instance';
-
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
             $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
 
@@ -129,11 +135,9 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
         return $this->create_item( $request );
     }
     public function update_event_instance( $request ) {
-        $this->post_type = 'event_instance';
         return $this->update_item( $request );
     }
     public function delete_event_instance( $request ) {
-        $this->post_type = 'event_instance';
         return $this->delete_item( $request );
     }
 }

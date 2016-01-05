@@ -9,23 +9,68 @@ class WP_REST_Prices_Controller extends Rooftop_Controller {
     }
 
     public function event_price_list_links_filter( $links, $post ) {
+        $prefix = "rooftop-events/v2";
+        $base = "$prefix/price_lists";
+
         $links['prices'] = array(
-            'href' => rest_url( 'rooftop-events/v2/' . 'price_lists/' . $post->ID . '/prices' ),
+            'href' => rest_url( trailingslashit( $base ) . $post->ID . '/prices' ),
             'embeddable' => true
+        );
+
+        $links['self'] = array(
+            'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
+        );
+        $links['collection'] = array(
+            'href'   => rest_url( $base ),
+        );
+        $links['about'] = array(
+            'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
         );
 
         return $links;
     }
 
     public function event_price_links_filter( $links, $post ) {
+        $prefix = "rooftop-events/v2";
+        $base = "$prefix/prices";
+
+        $price_list_id = get_post_meta( $post->ID, 'price_list_id', true );
+
         $links['ticket_type'] = array(
-            'href' => rest_url( 'rooftop-events/v2/' . 'ticket_types?parent=' . $post->ID ),
+            'href' => rest_url( trailingslashit( $prefix ) . 'ticket_types?parent=' . $post->ID ),
             'embeddable' => true
         );
 
         $links['price_band'] = array(
-            'href' => rest_url( 'rooftop-events/v2/' . 'price_bands?parent=' . $post->ID ),
+            'href' => rest_url( trailingslashit( $prefix ) . 'price_bands?parent=' . $post->ID ),
             'embeddable' => true
+        );
+
+        $links['self'] = array(
+            'href'   => rest_url( trailingslashit( $prefix ) . 'price_lists/' . trailingslashit( $price_list_id ) . 'prices/' . $post->ID ),
+        );
+        $links['collection'] = array(
+            'href'   => rest_url( trailingslashit( $prefix ) . 'price_lists/' . trailingslashit( $price_list_id ) . 'prices' ),
+        );
+        $links['about'] = array(
+            'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
+        );
+
+        return $links;
+    }
+
+    public function event_price_band_links_filter( $links, $post ) {
+        $prefix = "rooftop-events/v2";
+        $base = "$prefix/price_bands";
+
+        $links['self'] = array(
+            'href'   => rest_url( trailingslashit( $prefix ) . 'price_bands/' . $post->ID ),
+        );
+        $links['collection'] = array(
+            'href'   => rest_url( trailingslashit( $prefix ) . 'price_bands' ),
+        );
+        $links['about'] = array(
+            'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
         );
 
         return $links;
@@ -122,10 +167,14 @@ class WP_REST_Prices_Controller extends Rooftop_Controller {
                 'methods'         => WP_REST_Server::READABLE,
                 'callback'        => array( $this, 'get_price_bands' ),
                 'permission_callback' => array( $this, 'get_items_permissions_check' ),
-                'args'            => array(
-                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
-                ),
-            )
+                'args'            => $this->get_collection_params(),
+            ),
+            array(
+                'methods'         => WP_REST_Server::CREATABLE,
+                'callback'        => array( $this, 'create_price_band' ),
+                'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
+            ),
         ) );
         $this->add_link_filters( 'event_price_band' );
 
@@ -295,6 +344,10 @@ class WP_REST_Prices_Controller extends Rooftop_Controller {
     public function get_price_band( $request ) {
         $this->post_type = 'event_price_band';
         return $this->get_item( $request );
+    }
+    public function create_price_band( $request ) {
+        $this->post_type = 'event_price_band';
+        return $this->create_item( $request );
     }
     public function update_price_band( $request ) {
         $this->post_type = 'event_price_band';

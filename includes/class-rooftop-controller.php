@@ -28,7 +28,9 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
         $links = parent::prepare_links( $post );
 
         $filter_name = "rooftop_prepare_{$post->post_type}_links";
-        return apply_filters( $filter_name, $links, $post );
+        $links = apply_filters( $filter_name, $links, $post );
+
+        return $links;
     }
 
 }
