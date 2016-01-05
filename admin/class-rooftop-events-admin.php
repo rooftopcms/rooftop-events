@@ -251,7 +251,7 @@ class Rooftop_Events_Admin {
             global $wpdb;
             $table = $wpdb->prefix.'posts';
             $price_list = get_post($price_list_id);
-            $price_post_title = 'Price: ' . $_POST['rooftop']['price_list']['ticket_price'] . ', Price List: ' . $price_list->post_title;
+            $price_post_title = $price_list->post_title . ' (Price: ' . $_POST['rooftop']['price_list']['ticket_price'] . ')';
 
             $wpdb->query($wpdb->prepare("UPDATE $table SET post_title = %s WHERE ID = %d", $price_post_title, $post_id));
 
@@ -349,7 +349,7 @@ class Rooftop_Events_Admin {
                 exit;
             }
 
-            update_post_meta($post_id, 'event_id', $event_id);
+            update_post_meta( $post_id, 'event_id', $event_id );
         }
 
         if( $_POST ) {
@@ -359,8 +359,8 @@ class Rooftop_Events_Admin {
                 $price_list_id = null;
             }
 
-            update_post_meta($post_id, 'event_instance_availability', $_POST['rooftop']['event_instance']);
-            update_post_meta($post_id, 'price_list_id', $price_list_id);
+            update_post_meta( $post_id, 'event_instance_availability', $_POST['rooftop']['event_instance'] );
+            update_post_meta( $post_id, 'price_list_id', $price_list_id) ;
         }
     }
 

@@ -107,7 +107,7 @@ class Rooftop_Events_Public {
             'event_price_list' => array('plural' => 'Event Price Lists',  'singular' => 'Event Price List',  'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
             'event_price'      => array('plural' => 'Event Prices',       'singular' => 'Event Price',       'custom_args' => array('show_in_menu'=>'edit.php?post_type=event', 'supports' => false)),
             'event_price_band' => array('plural' => 'Event Price Bands',  'singular' => 'Event Price Band',  'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
-            'event_price_type' => array('plural' => 'Event Ticket Types', 'singular' => 'Event Ticket Type', 'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
+            'event_ticket_type' => array('plural' => 'Event Ticket Types', 'singular' => 'Event Ticket Type', 'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
         );
 
         foreach($types as $type => $args) {
@@ -163,10 +163,13 @@ class Rooftop_Events_Public {
         $events_controller = new WP_REST_Events_Controller('event');
         $events_controller->register_routes();
 
+        $events_controller = new WP_REST_Event_Instances_Controller('event_instance');
+        $events_controller->register_routes();
+
         $prices_controller = new WP_REST_Prices_Controller('event_price_band');
         $prices_controller->register_routes();
 
-        $tickets_controller = new WP_REST_Tickets_Controller('event_price_type');
+        $tickets_controller = new WP_REST_Tickets_Controller('event_ticket_type');
         $tickets_controller->register_routes();
     }
 
@@ -176,15 +179,30 @@ class Rooftop_Events_Public {
         return $valid_vars;
     }
 
-    public function sanitize_event( $response ) {
-
-
-        return $response;
+    public function delete_event( $event_id ) {
+        $this->delete_associated_posts( $event_id, 'event_instance', 'event_id' );
     }
 
-    public function sanitize_event_instance( $response ) {
-        $a = func_get_args();
+    public function delete_price_list( $price_list_id ) {
+        $this->delete_associated_posts( $price_list_id, 'event_price', 'price_list_id' );
+    }
 
-        return $response;
+    private function delete_associated_posts( $parent_id, $type, $key ) {
+        $results = $this->get_associated_posts( $parent_id, $type, $key );
+
+        foreach( $results as $result ) {
+            wp_delete_post( $result->ID );
+        }
+    }
+    private function get_associated_posts( $parent_id, $type, $key ) {
+        $associated_post_args = array(
+            'meta_key' => $key,
+            'meta_value' => $parent_id,
+            'post_type' => $type,
+            'post_status' => 'publish',
+            'posts_per_page' => -1
+        );
+
+        return get_posts( $associated_post_args );
     }
 }

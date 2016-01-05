@@ -120,7 +120,9 @@ class Rooftop_Events {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-rooftop-events-public.php';
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . '../rest-api/lib/endpoints/class-wp-rest-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-events-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-event-instances-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-prices-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-tickets-controller.php';
 
@@ -186,7 +188,6 @@ class Rooftop_Events {
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_instance', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price_list', 10, 3 );
-
 	}
 
 	/**
@@ -205,11 +206,11 @@ class Rooftop_Events {
 
         $this->loader->add_action( 'init', $plugin_public, 'register_event_post_types' );
 
-        $this->loader->add_filter( 'rest_prepare_event', $plugin_public, 'sanitize_event' );
-        $this->loader->add_filter( 'rest_prepare_event_instance', $plugin_public, 'sanitize_event_instance' );
         $this->loader->add_filter( 'rest_query_vars', $plugin_public, 'allow_meta_query_args' );
-
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'initialise_events_controller' );
+
+        $this->loader->add_action( 'delete_post', $plugin_public, 'delete_event', 10, 1);
+        $this->loader->add_action( 'delete_post', $plugin_public, 'delete_price_list', 10, 1);
 	}
 
 	/**
