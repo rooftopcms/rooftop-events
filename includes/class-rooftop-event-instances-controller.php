@@ -81,6 +81,8 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function get_event_instances( $request ) {
+        $this->add_filters();
+
         add_filter( 'rest_post_query', function( $args, $request ) {
             if( $args['post_type'] === 'event_instance' ) {
                 $args['meta_key']   = 'event_id';
@@ -92,21 +94,12 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
 
         return $this->get_items( $request );
     }
+
     public function get_event_instance( $request ) {
-        add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
-            $availability = get_post_meta( $post->ID, 'event_instance_availability', false );
-
-            if( count( $availability ) ) {
-                foreach( $availability[0] as $key => $value ) {
-                    $response->data[$key] = $value;
-                }
-            }
-
-            return $response;
-        }, 10, 3);
-
+        $this->add_filters();
         return $this->get_item( $request );
     }
+
     public function create_event_instance( $request ) {
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
             $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
@@ -139,5 +132,19 @@ class WP_REST_Event_Instances_Controller extends Rooftop_Controller {
     }
     public function delete_event_instance( $request ) {
         return $this->delete_item( $request );
+    }
+
+    private function add_filters() {
+        add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
+            $availability = get_post_meta( $post->ID, 'event_instance_availability', false );
+
+            if( count( $availability ) ) {
+                foreach( $availability[0] as $key => $value ) {
+                    $response->data[$key] = $value;
+                }
+            }
+
+            return $response;
+        }, 10, 3);
     }
 }
