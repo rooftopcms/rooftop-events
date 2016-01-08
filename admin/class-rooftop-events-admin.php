@@ -307,7 +307,7 @@ class Rooftop_Events_Admin {
 
             if( array_key_exists('post', $_GET) ) {
                 $instance = get_post($_GET['post']);
-                $instance_meta = get_post_meta($instance->ID, 'event_instance_availability', true);
+                $instance_meta = get_post_meta($instance->ID, 'availability', true);
                 // ensure the event_instance_availability is an array (get_post_meta will return "" if the post didn't have anything stored against it previously
                 $instance_meta =     is_array($instance_meta) ? $instance_meta : [];
 
@@ -325,10 +325,10 @@ class Rooftop_Events_Admin {
 
             echo "<table class='table' style='width: 100%'>";
             echo "    <tr>";
-            echo "        <td>Start Date<br/>       <input type='text' value='".$starts_at."' name='rooftop[event_instance][starts_at]' /></td>";
-            echo "        <td>End Date<br/>         <input type='text' value='".$stops_at."'  name='rooftop[event_instance][stops_at]' /></td>";
-            echo "        <td>Seating Capacity<br/> <input type='text' value='".$capacity."'  name='rooftop[event_instance][seats_capacity]' /></td>";
-            echo "        <td>Seats Available<br/>  <input type='text' value='".$available."' name='rooftop[event_instance][seats_available]' /></td>";
+            echo "        <td>Start Date<br/>       <input type='text' value='".$starts_at."' name='rooftop[event_instance][availability][starts_at]' /></td>";
+            echo "        <td>End Date<br/>         <input type='text' value='".$stops_at."'  name='rooftop[event_instance][availability][stops_at]' /></td>";
+            echo "        <td>Seating Capacity<br/> <input type='text' value='".$capacity."'  name='rooftop[event_instance][availability][seats_capacity]' /></td>";
+            echo "        <td>Seats Available<br/>  <input type='text' value='".$available."' name='rooftop[event_instance][availability][seats_available]' /></td>";
             echo "    </tr>";
             echo "</table>";
         }, 'event_instance', 'normal', 'high');
@@ -359,7 +359,7 @@ class Rooftop_Events_Admin {
                 $price_list_id = null;
             }
 
-            update_post_meta( $post_id, 'event_instance_availability', $_POST['rooftop']['event_instance'] );
+            update_post_meta( $post_id, 'availability', $_POST['rooftop']['event_instance']['availability'] );
             update_post_meta( $post_id, 'price_list_id', $price_list_id) ;
         }
     }

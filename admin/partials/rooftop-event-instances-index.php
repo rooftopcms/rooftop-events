@@ -14,7 +14,7 @@
         <?php foreach( $event_instances as $row ): ?>
 
             <?php
-            $instance_meta = get_post_meta($row->ID, 'event_instance_availability', true);
+            $instance_meta = get_post_meta($row->ID, 'availability', true);
             $instance_meta = is_array($instance_meta) ? $instance_meta : [];
             ?>
 

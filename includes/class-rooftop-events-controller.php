@@ -1,12 +1,8 @@
 <?php
 
-class WP_REST_Events_Controller extends Rooftop_Controller {
+class Rooftop_Events_Controller extends Rooftop_Controller {
 
     protected $post_type;
-
-    public function __construct( $post_type ) {
-        $this->post_type = $post_type;
-    }
 
     public function event_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
@@ -51,7 +47,6 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
                 'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
             )
         ) );
-        $this->add_link_filters('event');
 
         register_rest_route( 'rooftop-events/v2', '/' . $base . '/(?P<id>[\d]+)', array(
             array(
@@ -89,6 +84,8 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
     }
     public function create_event( $request ) {
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
+            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
+
             $content_attributes = $request['content'];
             if( $content_attributes && array_key_exists( 'content', $content_attributes['basic'] ) ) {
                 $prepared_post->post_content = array_key_exists( 'content', $content_attributes['basic'] ) ? $content_attributes['basic']['content'] : $request['content'];
@@ -99,9 +96,14 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
 
         add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
             if( $prepared_post->post_type === 'event' ) {
-                $meta_data = $request['post_meta'];
+                $meta_data = $request[$this->post_type."_meta"];
+
                 foreach($meta_data as $key => $value) {
-                    update_post_meta( $prepared_post->ID, $key, $value );
+                    if( empty( $value ) ) {
+                        delete_post_meta( $prepared_post->ID, $key );
+                    }else {
+                        update_post_meta( $prepared_post->ID, $key, $value );
+                    }
                 }
 
                 return $prepared_post;
@@ -114,7 +116,7 @@ class WP_REST_Events_Controller extends Rooftop_Controller {
     }
     public function update_event( $request ) {
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $meta_data = $request['post_meta'];
+            $meta_data = $request[$this->post_type."_meta"];
 
             foreach($meta_data as $key => $value) {
                 if( empty( $value ) ) {

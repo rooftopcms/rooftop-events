@@ -1,16 +1,25 @@
 <?php
 
+
 class Rooftop_Controller extends WP_REST_Posts_Controller {
 
     protected $post_type;
 
     public function __construct( $post_type ) {
         $this->post_type = $post_type;
+
+        $this->register_routes();
+        $this->add_update_attribute_hooks();
+        $this->add_link_filters();
+
+        if( method_exists( $this, 'add_rest_filters' ) ) {
+            $this->add_rest_filters();
+        }
     }
 
-    function add_link_filters( $post_type ) {
-        $filter_name = "rooftop_prepare_{$post_type}_links";
-        $method_name = "{$post_type}_links_filter";
+    function add_link_filters() {
+        $filter_name = "rooftop_prepare_{$this->post_type}_links";
+        $method_name = "{$this->post_type}_links_filter";
 
         if( method_exists( $this, $method_name ) ) {
             add_filter( $filter_name, array( $this, $method_name ), 10, 2 );
@@ -33,4 +42,45 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
         return $links;
     }
 
+    /**
+     *
+     */
+    protected function add_update_attribute_hooks() {
+        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
+            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
+
+            $content_attributes = $request['content'];
+            if( $content_attributes && array_key_exists( 'content', $content_attributes['basic'] ) ) {
+                $prepared_post->post_content = array_key_exists( 'content', $content_attributes['basic'] ) ? $content_attributes['basic']['content'] : $request['content'];
+            }
+
+            return $prepared_post;
+        }, 10, 2);
+
+        add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
+            if( $prepared_post->post_type === 'event_instance' ) {
+                $meta_data = $request[$this->post_type."_meta"];
+                if( !$meta_data) $meta_data = [];
+
+                foreach($meta_data as $key => $value) {
+                    if( empty( $value ) ) {
+                        delete_post_meta( $prepared_post->ID, $key );
+                    }else {
+                        if( is_array( $value ) ) {
+                            $old_value = get_post_meta( $prepared_post->ID, $key, true );
+                            $value = array_merge( $old_value, $value );
+
+                            foreach( $value as $k => $v ) {
+                                if( empty( $v ) ) unset( $value[$k] );
+                            }
+                        }
+
+                        update_post_meta( $prepared_post->ID, $key, $value );
+                    }
+                }
+            }
+
+            return $prepared_post;
+        }, 10, 3);
+    }
 }

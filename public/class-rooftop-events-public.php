@@ -160,17 +160,19 @@ class Rooftop_Events_Public {
     }
 
     public function initialise_events_controller() {
-        $events_controller = new WP_REST_Events_Controller('event');
-        $events_controller->register_routes();
+        $events       = new Rooftop_Events_Controller('event');
+        $instances    = new Rooftop_Event_Instances_Controller('event_instance');
+        $price_list   = new Rooftop_Price_Lists_Controller('event_price_list');
+        $prices       = new Rooftop_Prices_Controller('event_price');
+        $ticket_types = new Rooftop_Tickets_Controller('event_ticket_type');
+        $price_bands  = new Rooftop_Price_Bands_Controller('event_price_band');
 
-        $events_controller = new WP_REST_Event_Instances_Controller('event_instance');
-        $events_controller->register_routes();
-
-        $prices_controller = new WP_REST_Prices_Controller('event_price_band');
-        $prices_controller->register_routes();
-
-        $tickets_controller = new WP_REST_Tickets_Controller('event_ticket_type');
-        $tickets_controller->register_routes();
+        $events->register_routes();
+        $instances->register_routes();
+        $price_list->register_routes();
+        $prices->register_routes();
+        $ticket_types->register_routes();
+        $price_bands->register_routes();
     }
 
     public function allow_meta_query_args( $valid_vars ) {

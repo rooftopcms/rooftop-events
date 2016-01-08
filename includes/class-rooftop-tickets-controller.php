@@ -1,16 +1,11 @@
 <?php
 
-class WP_REST_Tickets_Controller extends Rooftop_Controller {
+class Rooftop_Tickets_Controller extends Rooftop_Controller {
 
     protected $post_type;
 
-    public function __construct( $post_type ) {
-        $this->post_type = $post_type;
-    }
-
     public function event_ticket_type_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
-        $base = "$prefix/ticket_types";
 
         $links['self'] = array(
             'href'   => rest_url( trailingslashit( $prefix ) . 'ticket_types/' . $post->ID ),
@@ -46,7 +41,6 @@ class WP_REST_Tickets_Controller extends Rooftop_Controller {
                 'args'            => $this->get_collection_params(),
             )
         ) );
-        $this->add_link_filters( 'event_ticket_type' );
 
         register_rest_route( 'rooftop-events/v2', '/ticket_types/(?P<id>[\d]+)', array(
             array(

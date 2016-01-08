@@ -73,7 +73,11 @@ class Rooftop_Events {
 
 		$this->load_dependencies();
 		$this->set_locale();
-		$this->define_admin_hooks();
+
+        if( is_admin() ) {
+		    $this->define_admin_hooks();
+        }
+
 		$this->define_public_hooks();
 
 	}
@@ -126,6 +130,8 @@ class Rooftop_Events {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-events-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-event-instances-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-prices-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-price-lists-controller.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-price-bands-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-tickets-controller.php';
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/rooftop_model.php';
