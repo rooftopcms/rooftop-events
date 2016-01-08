@@ -25,6 +25,11 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
             'embeddable' => true
         );
 
+        $links['price_list'] = array(
+            'href' => rest_url( trailingslashit( $prefix ) . 'price_lists/' . $price_list_id ),
+            'embeddable' => true
+        );
+
         $links['self'] = array(
             'href'   => rest_url( trailingslashit( $prefix ) . 'price_lists/' . trailingslashit( $price_list_id ) . 'prices/' . $post->ID ),
         );
