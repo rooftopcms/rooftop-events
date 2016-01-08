@@ -3,7 +3,7 @@
 
 class Rooftop_Controller extends WP_REST_Posts_Controller {
 
-    protected $post_type;
+    public $post_type;
 
     public function __construct( $post_type ) {
         $this->post_type = $post_type;
@@ -56,8 +56,9 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
         }, 10, 2);
 
         add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
-            if( $prepared_post->post_type === 'event_instance' ) {
-                $meta_data = $request[$this->post_type."_meta"];
+            if( $prepared_post->post_type === $this->post_type ) {
+                $meta_data_key = $this->post_type."_meta";
+                $meta_data = $request[$meta_data_key];
                 if( !$meta_data) $meta_data = [];
 
                 foreach($meta_data as $key => $value) {
@@ -84,6 +85,12 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
     }
 
     function add_rooftop_rest_presentation_filters() {
+        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
+            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
+
+            return $prepared_post;
+        }, 10, 2);
+
         add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $custom_attributes = get_post_meta( $post->ID, 'custom_attributes', false );
 

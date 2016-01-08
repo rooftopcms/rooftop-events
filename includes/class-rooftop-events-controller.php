@@ -1,9 +1,6 @@
 <?php
 
 class Rooftop_Events_Controller extends Rooftop_Controller {
-
-    protected $post_type;
-
     public function event_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
         $base = "$prefix/{$post->post_type}s";
@@ -12,7 +9,6 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'href' => rest_url( $base . '/' . $post->ID . '/instances'),
             'embeddable' => true
         );
-
         $links['self'] = array(
             'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
         );

@@ -1,9 +1,6 @@
 <?php
 
 class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
-
-    protected $post_type;
-
     function __construct( $post_type ) {
         parent::__construct( $post_type );
 

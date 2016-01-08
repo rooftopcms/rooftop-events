@@ -1,8 +1,15 @@
 <?php
 
 class Rooftop_Prices_Controller extends Rooftop_Controller {
+    function __construct( $post_type ) {
+        parent::__construct( $post_type );
 
-    protected $post_type;
+        add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
+            $ticket_price = get_post_meta( $post->ID, 'ticket_price', true );
+            $response->data['ticket_price'] = apply_filters( 'rooftop_format_money', $ticket_price );
+            return $response;
+        }, 10, 3);
+    }
 
     public function event_price_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
@@ -118,51 +125,5 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
     }
     public function delete_price( $request ) {
         return $this->delete_item( $request );
-    }
-
-
-    function add_rest_filters() {
-        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
-
-            return $prepared_post;
-        }, 10, 2);
-
-        add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
-            if( $prepared_post->post_type === 'event_price' ) {
-                update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
-
-                $meta_data = $request[$this->post_type."_meta"];
-                foreach($meta_data as $key => $value) {
-                    if( empty( $value) ) {
-                        delete_post_meta( $prepared_post->ID, $key );
-                    }else {
-                        update_post_meta( $prepared_post->ID, $key, $value );
-                    }
-                }
-
-                return $prepared_post;
-            }
-
-            return $prepared_post;
-        }, 10, 3);
-
-        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $meta_data = $request[$this->post_type."_meta"];
-            foreach($meta_data as $key => $value) {
-                if( empty( $value ) ) {
-                    delete_post_meta( $prepared_post->ID, $key );
-                }else {
-                    update_post_meta( $prepared_post->ID, $key, $value );
-                }
-            }
-            return $prepared_post;
-        }, 10, 2);
-
-        add_filter('rest_prepare_event_price', function( $response, $post, $request ) {
-            $ticket_price = get_post_meta( $post->ID, 'ticket_price', true );
-            $response->data['ticket_price'] = apply_filters( 'rooftop_format_money', $ticket_price );
-            return $response;
-        }, 10, 3);
     }
 }

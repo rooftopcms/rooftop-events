@@ -1,9 +1,6 @@
 <?php
 
 class Rooftop_Tickets_Controller extends Rooftop_Controller {
-
-    protected $post_type;
-
     public function event_ticket_type_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
 

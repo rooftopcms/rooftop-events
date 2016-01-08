@@ -1,9 +1,6 @@
 <?php
 
 class Rooftop_Price_Bands_Controller extends Rooftop_Controller {
-
-    protected $post_type;
-
     public function event_price_band_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
 
