@@ -26,6 +26,10 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
             'embeddable' => true
         );
 
+        $links['event'] = array(
+            'href' => rest_url( 'rooftop-events/v2/' . 'events/' . $event_id),
+        );
+
         $links['self'] = array(
             'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
         );
