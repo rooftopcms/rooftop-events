@@ -200,7 +200,7 @@ class Rooftop_Events_Admin {
 
         }, 'event_price');
 
-        add_meta_box('event_instance_ticket_band', 'Ticket Band', function() {
+        add_meta_box('event_instance_ticket_band', 'Price Band', function() {
             $ticket_bands_args = array(
                 'post_type' => 'event_price_band',
                 'post_status' => 'publish',
