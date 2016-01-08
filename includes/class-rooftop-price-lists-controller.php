@@ -73,6 +73,20 @@ class Rooftop_Price_Lists_Controller extends Rooftop_Controller {
             $price_list_id = get_post_meta( $request['parent'], 'price_list_id', true );
 
             return $this->get_price_list( array('id' => $price_list_id, 'context' => 'embed' ) );
+        }else if( $context==="view" && $request['parent'] && $request['type'] ) {
+            $price_list_id = null;
+
+            if( $request['type'] === 'price' ) {
+                $price_post = get_post( $request['parent'] );
+                $price_list_id = get_post_meta( $price_post->ID, 'price_list_id', true );
+            }elseif( $request['type'] === 'instance' ) {
+                $event_instance = get_post( $request['parent'] );
+                $price_list_id = get_post_meta( $event_instance->ID, 'price_list_id', true );
+            }
+
+            if( $price_list_id ) {
+                return $this->get_item( array('id' => $price_list_id, 'context' => 'view' ) );
+            }
         }
 
         return $this->get_items( $request );

@@ -75,6 +75,13 @@ class Rooftop_Tickets_Controller extends Rooftop_Controller {
         if( $context == 'embed' ) {
             $ticket_type_id = get_post_meta( $request['parent'], 'ticket_type_id', true );
             return $this->get_item( array( 'id' => $ticket_type_id, 'context' => 'embed' ) );
+        }else if( $context == 'view' && $request['parent'] ) {
+            $price_post = get_post( $request['parent'] );
+            $ticket_type_id = get_post_meta( $price_post->ID, 'ticket_type_id', true);
+
+            if( $ticket_type_id ) {
+                return $this->get_item( array( 'id' => $ticket_type_id, 'context' => 'view' ) );
+            }
         }else {
             return $this->get_items( $request );
         }

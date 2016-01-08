@@ -66,6 +66,13 @@ class Rooftop_Price_Bands_Controller extends Rooftop_Controller {
         if( $context == 'embed' ) {
             $price_band_id = get_post_meta( $request['parent'], 'price_band_id', true );
             return $this->get_item( array( 'id' => $price_band_id, 'context' => 'embed' ) );
+        }else if( $context == 'view' && $request['parent'] ) {
+            $price_post = get_post( $request['parent'] );
+            $price_band_id = get_post_meta( $price_post->ID, 'price_band_id', true);
+
+            if( $price_band_id ) {
+                return $this->get_item( array( 'id' => $price_band_id, 'context' => 'view' ) );
+            }
         }else {
             return $this->get_items( $request );
         }

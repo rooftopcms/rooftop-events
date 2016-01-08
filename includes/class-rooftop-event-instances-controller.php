@@ -22,7 +22,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
         $base = "$prefix/events/$event_id/instances";
 
         $links['price_list'] = array(
-            'href' => rest_url( 'rooftop-events/v2/' . 'price_lists?parent=' . $post->ID),
+            'href' => rest_url( 'rooftop-events/v2/' . 'price_lists?type=instance&parent=' . $post->ID),
             'embeddable' => true
         );
 
