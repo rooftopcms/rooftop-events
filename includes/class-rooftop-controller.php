@@ -10,14 +10,12 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
 
         $this->register_routes();
         $this->add_update_attribute_hooks();
-        $this->add_link_filters();
+        $this->add_rooftop_link_filters();
 
-        if( method_exists( $this, 'add_rest_filters' ) ) {
-            $this->add_rest_filters();
-        }
+        $this->add_rooftop_rest_presentation_filters();
     }
 
-    function add_link_filters() {
+    function add_rooftop_link_filters() {
         $filter_name = "rooftop_prepare_{$this->post_type}_links";
         $method_name = "{$this->post_type}_links_filter";
 
@@ -68,6 +66,7 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
                     }else {
                         if( is_array( $value ) ) {
                             $old_value = get_post_meta( $prepared_post->ID, $key, true );
+                            $old_value = $old_value ? $old_value : [];
                             $value = array_merge( $old_value, $value );
 
                             foreach( $value as $k => $v ) {
@@ -82,5 +81,22 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
 
             return $prepared_post;
         }, 10, 3);
+    }
+
+    function add_rooftop_rest_presentation_filters() {
+        add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
+            $custom_attributes = get_post_meta( $post->ID, 'custom_attributes', false );
+
+            if( $custom_attributes && count( $custom_attributes ) ) {
+                foreach( $custom_attributes[0] as $key => $value ) {
+                    $response->data[$key] = $value;
+                }
+            }
+
+            do_action( "rooftop_".$this->post_type."_rest_presentation_filters" );
+
+            return $response;
+        }, 10, 3);
+
     }
 }

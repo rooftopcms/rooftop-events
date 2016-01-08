@@ -4,6 +4,20 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
     protected $post_type;
 
+    function __construct( $post_type ) {
+        parent::__construct( $post_type );
+
+        add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
+            $availability = get_post_meta( $post->ID, 'availability', false );
+
+            if( $availability && count( $availability ) ) {
+                $response->data['availability'] = $availability;
+            }
+
+            return $response;
+        }, 10, 3);
+    }
+
     public function event_instance_links_filter( $links, $post ) {
         $event_id = get_post_meta( $post->ID, 'event_id', true );
 
@@ -100,19 +114,5 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     }
     public function delete_event_instance( $request ) {
         return $this->delete_item( $request );
-    }
-
-    function add_rest_filters() {
-        add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
-            $availability = get_post_meta( $post->ID, 'availability', false );
-
-            if( $availability && count( $availability ) ) {
-                foreach( $availability[0] as $key => $value ) {
-                    $response->data[$key] = $value;
-                }
-            }
-
-            return $response;
-        }, 10, 3);
     }
 }
