@@ -100,38 +100,6 @@ class Rooftop_Events_Admin {
 
 	}
 
-    /**
-     * @param $blog_id
-     *
-     * when called via the wpmu_create_blog hook, we'll be given a blog id.
-     * in other cases, when called via init we have no $blog_id, but may still
-     * need to create the tables
-     */
-    public function create_tables($blog_id = null) {
-        if( (defined('DOING_AJAX') && DOING_AJAX == "DOING_AJAX") || (array_key_exists( 'action', $_REQUEST ) && $_REQUEST['action'] == 'heartbeat' )) {
-            return;
-        }
-
-        if( !$blog_id ) {
-            $blog_id = get_current_blog_id();
-        }
-
-        $option_key = "site_${blog_id}_event_tables_added";
-        $tables_added = (bool)get_site_option($option_key);
-
-        if( !$tables_added ) {
-            try {
-                $this->create_event_tables();
-                update_site_option( $option_key, true );
-            }catch(Exception $e) {
-                new WP_Error(500, "Something went wrong when creating the events database!");
-                exit;
-            }
-        }
-
-        restore_current_blog();
-    }
-
     public function add_events_admin_ui() {
         add_meta_box( 'rooftop_event_instances_link', 'Event Instances', array($this, 'rooftop_event_instances'), 'event', 'normal', 'default' );
     }
@@ -253,6 +221,7 @@ class Rooftop_Events_Admin {
             $price_list = get_post($price_list_id);
             $price_post_title = $price_list->post_title . ' (Price: ' . $_POST['rooftop']['price_list']['ticket_price'] . ')';
 
+            // manually set the price title - the post type itself doesn't support title or content, but we do render the title when listing the event prices
             $wpdb->query($wpdb->prepare("UPDATE $table SET post_title = %s WHERE ID = %d", $price_post_title, $post_id));
 
             update_post_meta($post_id, 'ticket_price', (int)$_POST['rooftop']['price_list']['ticket_price']);
@@ -368,13 +337,6 @@ class Rooftop_Events_Admin {
         if( 'event' != $post->post_type ) return;
 
         $rooftop_event_id = get_post_meta($post_id, 'rooftop_event_id', true);
-
-        if( !$rooftop_event_id ) {
-            $rooftop_event = new Event(array('post_id' => $post_id));
-            $rooftop_event->save();
-
-            update_post_meta($post_id, 'rooftop_event_id', $rooftop_event->id);
-        }
     }
 
     function rooftop_event_instances() {
@@ -393,81 +355,6 @@ class Rooftop_Events_Admin {
     private function renderSelect( $name, $collection, $selected = null, $options = array() ) {
         require plugin_dir_path( __FILE__ ) . 'partials/_select.php';
         unset($collection);
-    }
-
-    private function create_event_tables() {
-        global $wpdb;
-        $wpdb->query("START TRANSACTION");
-
-        $event_table_name     = $wpdb->prefix . "events";
-        $event_table_name_sql = <<<EOSQL
-CREATE TABLE $event_table_name(
-    id MEDIUMINT NOT NULL AUTO_INCREMENT,
-    post_id INTEGER NOT NULL,
-PRIMARY KEY(id)
-)
-EOSQL;
-        dbDelta($event_table_name_sql);
-        $added = $wpdb->get_var("SHOW TABLES LIKE '$event_table_name'") == $event_table_name;
-        if( !$added ){
-            $wpdb->query("ROLLBACK");
-            throw new Exception("Couldn't create table $event_table_name");
-        }
-
-        $instance_table_name     = $wpdb->prefix . "event_instances";
-        $instance_table_name_sql = <<<EOSQL
-CREATE TABLE $instance_table_name(
-    id MEDIUMINT NOT NULL AUTO_INCREMENT,
-    event_id INTEGER NOT NULL,
-    starts_at DATETIME DEFAULT '0000-00-00 00:00:00' NOT NULL,
-    stops_at  DATETIME DEFAULT '0000-00-00 00:00:00' NOT NULL,
-    seats_selected INTEGER DEFAULT 0,
-    seats_available INTEGER DEFAULT 0,
-    seats_capacity INTEGER DEFAULT 0,
-    seats_locked INTEGER DEFAULT 0,
-PRIMARY KEY(id)
-)
-EOSQL;
-        dbDelta($instance_table_name_sql);
-        $added = $wpdb->get_var("SHOW TABLES LIKE '$instance_table_name'") == $instance_table_name;
-        if( !$added ){
-            $wpdb->query("ROLLBACK");
-            throw new Exception("Couldn't create table $event_table_name");
-        }
-
-        $price_table_name     = $wpdb->prefix . "event_instance_prices";
-        $price_table_name_sql = <<<EOSQL
-CREATE TABLE $price_table_name(
-    id MEDIUMINT NOT NULL AUTO_INCREMENT,
-    event_instance_id INTEGER NOT NULL,
-    price INTEGER DEFAULT 0,
-PRIMARY KEY(id)
-)
-EOSQL;
-        dbDelta($price_table_name_sql);
-        $added = $wpdb->get_var("SHOW TABLES LIKE '$price_table_name'") == $price_table_name;
-        if( !$added ){
-            $wpdb->query("ROLLBACK");
-            throw new Exception("Couldn't create table $price_table_name_sql");
-        }
-
-        $wpdb->query("COMMIT");
-    }
-
-    public function remove_tables($blog_id) {
-        global $wpdb;
-
-        $event_table_name    = $wpdb->prefix . "events";
-        $instance_table_name = $wpdb->prefix . "event_instances";
-        $price_table_name    = $wpdb->prefix . "event_instance_prices";
-
-        $sql = <<<EOSQL
-DROP TABLE $event_table_name;
-DROP TABLE $instance_table_name;
-DROP TABLE $price_table_name;
-EOSQL;
-        $wpdb->query($sql);
-
     }
 
 }
