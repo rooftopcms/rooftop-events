@@ -4,6 +4,13 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     function __construct( $post_type ) {
         parent::__construct( $post_type );
 
+        // add the event_id metadata to newly created event instance posts
+        add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
+            update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
+
+            return $prepared_post;
+        }, 10, 3);
+
         add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $availability = get_post_meta( $post->ID, 'availability', false );
 
@@ -108,7 +115,19 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function create_event_instance( $request ) {
-        return $this->create_item( $request );
+        $event_id = $request['event_id'];
+        $event_post = get_post( $event_id );
+
+        if( $event_post ) {
+            return $this->create_item( $request );
+        }else {
+            $error = new WP_REST_Response( array(
+                'message'=> 'Event not found'
+            ) );
+            $error->set_status(404);
+
+            return $error;
+        }
     }
     public function update_event_instance( $request ) {
         return $this->update_item( $request );

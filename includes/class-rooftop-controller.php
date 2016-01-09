@@ -78,6 +78,8 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
                         update_post_meta( $prepared_post->ID, $key, $value );
                     }
                 }
+
+                do_action( "rooftop_".$this->post_type."_rest_insert_post", $prepared_post, $request, $success );
             }
 
             return $prepared_post;

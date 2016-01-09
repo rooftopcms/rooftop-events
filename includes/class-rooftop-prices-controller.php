@@ -4,6 +4,13 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
     function __construct( $post_type ) {
         parent::__construct( $post_type );
 
+        // add the event_id metadata to newly created event instance posts
+        add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
+            update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
+
+            return $prepared_post;
+        }, 10, 3);
+
         add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $ticket_price = get_post_meta( $post->ID, 'ticket_price', true );
             $response->data['ticket_price'] = apply_filters( 'rooftop_format_money', $ticket_price );
@@ -109,7 +116,7 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
     public function create_price( $request ) {
         $required_keys = array( 'ticket_price', 'price_band_id', 'ticket_type_id' );
 
-        $meta = $request['post_meta'] ? $request['post_meta'] : array();
+        $meta = $request[$this->post_type."_meta"] ? $request[$this->post_type."_meta"] : array();
 
         if( count( array_intersect_key( array_flip( $required_keys ), $meta ) ) >= count( $required_keys ) ) {
             return $this->create_item( $request );
