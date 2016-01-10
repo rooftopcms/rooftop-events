@@ -93,6 +93,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
             if( $prepared_post->post_type === 'event' ) {
                 $meta_data = $request[$this->post_type."_meta"];
+                $meta_data = ( is_array($meta_data) ? $meta_data : Array() );
 
                 foreach($meta_data as $key => $value) {
                     if( empty( $value ) ) {
@@ -113,6 +114,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
     public function update_event( $request ) {
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
             $meta_data = $request[$this->post_type."_meta"];
+            $meta_data = ( is_array($meta_data) ? $meta_data : Array() );
 
             foreach($meta_data as $key => $value) {
                 if( empty( $value ) ) {
