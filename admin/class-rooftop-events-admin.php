@@ -339,6 +339,8 @@ class Rooftop_Events_Admin {
         $rooftop_event_id = get_post_meta($post_id, 'rooftop_event_id', true);
     }
 
+    public function create_tables() {}
+
     function rooftop_event_instances() {
         $event_instance_args = array(
             'meta_key' => 'event_id',
