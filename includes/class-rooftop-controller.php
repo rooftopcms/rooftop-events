@@ -98,7 +98,7 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
 
             if( $custom_attributes && count( $custom_attributes ) ) {
                 foreach( $custom_attributes[0] as $key => $value ) {
-                    $response->data[$key] = $value;
+                    $response->data['meta']['custom_attributes'][$key] = $value;
                 }
             }
 
