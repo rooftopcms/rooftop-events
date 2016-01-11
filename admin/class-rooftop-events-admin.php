@@ -277,20 +277,29 @@ class Rooftop_Events_Admin {
                 $stops_at  = array_key_exists('stops_at', $availability_meta)  ? $availability_meta['stops_at'] : $formatted_date(time());
                 $capacity  = array_key_exists('seats_capacity', $availability_meta)  ? $availability_meta['seats_capacity'] : 0;
                 $available = array_key_exists('seats_available', $availability_meta) ? $availability_meta['seats_available'] : 0;
+
+                $start_selling_at = array_key_exists('start_selling_at', $availability_meta) ? $availability_meta['start_selling_at'] : $formatted_date(time());
+                $stop_selling_at  = array_key_exists('stop_selling_at', $availability_meta)  ? $availability_meta['stop_selling_at'] : $formatted_date(time());
             }else {
                 $starts_at = $formatted_date(time());
                 $stops_at  = $formatted_date(time());
-
                 $capacity  = 0;
                 $available = 0;
+
+                $start_selling_at = $formatted_date(time());
+                $stop_selling_at  = $formatted_date(time());
             }
 
             echo "<table class='table' style='width: 100%'>";
             echo "    <tr>";
             echo "        <td>Start Date<br/>       <input type='text' value='".$starts_at."' name='rooftop[event_instance_meta][availability][starts_at]' /></td>";
-            echo "        <td>End Date<br/>         <input type='text' value='".$stops_at."'  name='rooftop[event_instance_meta][availability][stops_at]' /></td>";
+            echo "        <td>Stop Date<br/>        <input type='text' value='".$stops_at."'  name='rooftop[event_instance_meta][availability][stops_at]' /></td>";
             echo "        <td>Seating Capacity<br/> <input type='text' value='".$capacity."'  name='rooftop[event_instance_meta][availability][seats_capacity]' /></td>";
             echo "        <td>Seats Available<br/>  <input type='text' value='".$available."' name='rooftop[event_instance_meta][availability][seats_available]' /></td>";
+            echo "    </tr>";
+            echo "    <tr>";
+            echo "        <td>Start Selling At<br/> <input type='text' value='".$start_selling_at."' name='rooftop[event_instance_meta][availability][start_selling_at]' /></td>";
+            echo "        <td>Stop Selling At<br/>  <input type='text' value='".$stop_selling_at."'  name='rooftop[event_instance_meta][availability][stop_selling_at]' /></td>";
             echo "    </tr>";
             echo "</table>";
         }, 'event_instance', 'normal', 'high');
@@ -317,7 +326,7 @@ class Rooftop_Events_Admin {
         }
 
         if( $_POST ) {
-            if( array_key_exists( 'price_list_id', $_POST['rooftop']['event_instance'] ) ) {
+            if( @$_POST['rooftop']['event_instance'] ) {
                 $price_list_id = $_POST['rooftop']['event_instance']['price_list_id'];
             }else {
                 $price_list_id = null;
