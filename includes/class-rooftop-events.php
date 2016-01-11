@@ -134,9 +134,6 @@ class Rooftop_Events {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-price-bands-controller.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rooftop-tickets-controller.php';
 
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/rooftop_model.php';
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event.php';
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/event_instance.php';
 
 		$this->loader = new Rooftop_Events_Loader();
 
