@@ -71,7 +71,7 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
                             unset( $current_meta_data[$key] );
                         }else {
                             if( is_array( $value ) ) {
-                                $old_value = $current_meta_data[$key];
+                                $old_value = @$current_meta_data[$key];
                                 $old_value = ( $old_value && is_array( $old_value ) ) ? $old_value : [];
                                 $value = array_merge( $old_value, $value );
 
