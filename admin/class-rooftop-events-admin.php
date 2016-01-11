@@ -237,7 +237,7 @@ class Rooftop_Events_Admin {
             if( !$rooftop_event_id && count($event_posts) ) {
                 $rooftop_event_id = array_key_exists('event_id', $_GET) ? $_GET['event_id'] :  array_values($event_posts)[0]->ID;
 
-                $this->renderSelect("rooftop[event][event_id]", $event_posts, $rooftop_event_id);
+                $this->renderSelect("rooftop[event_instance][event_id]", $event_posts, $rooftop_event_id);
             }else {
                 $event = get_post($rooftop_event_id);
                 echo "<a href=\"/wp-admin/post.php?post=$event->ID&action=edit\">$event->post_title</a>";
@@ -297,17 +297,19 @@ class Rooftop_Events_Admin {
     }
 
     public function save_event_instance($post_id, $post, $update) {
-        if( 'event_instance' != $post->post_type ) return;
+        if( 'event_instance' != $post->post_type || 'auto-draft' == $post->post_status ) {
+            return;
+        }
 
         // save this instance with a corresponding event_id, so that we can lookup an event's instances using a WP meta query
-        $event_id = get_post_meta($post_id, 'event_id', true);
+        $event_id = get_post_meta( $post_id, 'event_id', true );
 
         if( !$event_id ) {
-            $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event']['event_id'] : null;
+            $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_instance']['event_id'] : null;
 
             if( !$event_id ) {
-                return new WP_Error(422, "Unprocessible entity");
                 echo "No event ID provided";
+                return new WP_Error(422, "Unprocessible entity");
                 exit;
             }
 
