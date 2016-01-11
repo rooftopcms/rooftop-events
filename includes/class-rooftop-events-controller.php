@@ -1,6 +1,17 @@
 <?php
 
 class Rooftop_Events_Controller extends Rooftop_Controller {
+    function __construct( $post_type ) {
+        parent::__construct( $post_type );
+
+        // add the event_id metadata to newly created event instance posts
+        add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
+            update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
+
+            return $prepared_post;
+        }, 10, 3);
+    }
+
     public function event_links_filter( $links, $post ) {
         $prefix = "rooftop-events/v2";
         $base = "$prefix/{$post->post_type}s";
@@ -79,51 +90,9 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         return $this->get_item( $request );
     }
     public function create_event( $request ) {
-        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
-
-            $content_attributes = $request['content'];
-            if( $content_attributes && array_key_exists( 'content', $content_attributes['basic'] ) ) {
-                $prepared_post->post_content = array_key_exists( 'content', $content_attributes['basic'] ) ? $content_attributes['basic']['content'] : $request['content'];
-            }
-
-            return $prepared_post;
-        }, 10, 2);
-
-        add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
-            if( $prepared_post->post_type === 'event' ) {
-                $meta_data = $request[$this->post_type."_meta"];
-
-                foreach($meta_data as $key => $value) {
-                    if( empty( $value ) ) {
-                        delete_post_meta( $prepared_post->ID, $key );
-                    }else {
-                        update_post_meta( $prepared_post->ID, $key, $value );
-                    }
-                }
-
-                return $prepared_post;
-            }
-
-            return $prepared_post;
-        }, 10, 3);
-
         return $this->create_item( $request );
     }
     public function update_event( $request ) {
-        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $meta_data = $request[$this->post_type."_meta"];
-
-            foreach($meta_data as $key => $value) {
-                if( empty( $value ) ) {
-                    delete_post_meta( $prepared_post->ID, $key );
-                }else {
-                    update_post_meta( $prepared_post->ID, $key, $value );
-                }
-            }
-            return $prepared_post;
-        }, 10, 2);
-
         return $this->update_item( $request );
     }
     public function delete_event( $request ) {
