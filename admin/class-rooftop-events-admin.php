@@ -152,7 +152,7 @@ class Rooftop_Events_Admin {
 
             $price_lists_args = array(
                 'post_type' => 'event_price_list',
-                'post_status' => 'publish',
+                'post_status' => array( 'publish', 'draft' ),
                 'posts_per_page' => -1
             );
             $price_lists = get_posts($price_lists_args);
@@ -268,14 +268,15 @@ class Rooftop_Events_Admin {
 
             if( array_key_exists('post', $_GET) ) {
                 $instance = get_post($_GET['post']);
-                $instance_meta = get_post_meta($instance->ID, 'availability', true);
-                // ensure the event_instance_availability is an array (get_post_meta will return "" if the post didn't have anything stored against it previously
-                $instance_meta =     is_array($instance_meta) ? $instance_meta : [];
+                $event_instance_meta = get_post_meta( $instance->ID, 'event_instance_meta', true );
+                $event_instance_meta = is_array( $event_instance_meta ) ? $event_instance_meta : [];
 
-                $starts_at = array_key_exists('starts_at', $instance_meta) ? $instance_meta['starts_at'] : $formatted_date(time());
-                $stops_at  = array_key_exists('stops_at', $instance_meta)  ? $instance_meta['stops_at'] : $formatted_date(time());
-                $capacity  = array_key_exists('seats_capacity', $instance_meta)  ? $instance_meta['seats_capacity'] : 0;
-                $available = array_key_exists('seats_available', $instance_meta) ? $instance_meta['seats_available'] : 0;
+                $availability_meta = array_key_exists( 'availability', $event_instance_meta ) ? $event_instance_meta['availability'] : [];
+
+                $starts_at = array_key_exists('starts_at', $availability_meta) ? $availability_meta['starts_at'] : $formatted_date(time());
+                $stops_at  = array_key_exists('stops_at', $availability_meta)  ? $availability_meta['stops_at'] : $formatted_date(time());
+                $capacity  = array_key_exists('seats_capacity', $availability_meta)  ? $availability_meta['seats_capacity'] : 0;
+                $available = array_key_exists('seats_available', $availability_meta) ? $availability_meta['seats_available'] : 0;
             }else {
                 $starts_at = $formatted_date(time());
                 $stops_at  = $formatted_date(time());
