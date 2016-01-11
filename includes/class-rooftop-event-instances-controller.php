@@ -8,6 +8,10 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
             update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
 
+            if( $request['price_list_id'] ) {
+                update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
+            }
+
             return $prepared_post;
         }, 10, 3);
 

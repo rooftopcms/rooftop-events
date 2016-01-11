@@ -141,7 +141,9 @@ class Rooftop_Events_Admin {
 
     public function add_event_price_meta_boxes() {
         add_meta_box('event_instance_price_field', 'Ticket Price', function() {
-            $ticket_price = get_post_meta(get_the_ID(), 'ticket_price', true);
+            $price_meta = get_post_meta( get_the_ID(), 'event_price_meta', true );
+            $ticket_price = array_key_exists( 'ticket_price', $price_meta) ? $price_meta['ticket_price'] : 0;
+
             echo "£<input type=\"text\" name=\"rooftop[event_price_meta][ticket_price]\" value=\"$ticket_price\"/>";
         }, 'event_price');
 
@@ -155,17 +157,14 @@ class Rooftop_Events_Admin {
             );
             $price_lists = get_posts($price_lists_args);
 
-            $rooftop_price_list_id = get_post_meta($post->ID, 'price_list_id', true);
-
-            if( !$rooftop_price_list_id && count($price_lists) ) {
-                $rooftop_price_list_id = array_key_exists('event_price_list_id', $_GET) ? $_GET['event_price_list_id'] :  array_values($price_lists)[0]->ID;
-
-                $this->renderSelect("rooftop[event_price][price_list_id]", $price_lists, $rooftop_price_list_id);
+            if( array_key_exists('event_price_list_id', $_GET) ) {
+                $rooftop_price_list_id = $_GET['event_price_list_id'];
             }else {
-                $price_list = get_post($rooftop_price_list_id);
-                echo "<a href=\"/wp-admin/post.php?post=$price_list->ID&action=edit\">$price_list->post_title</a>";
+                $rooftop_price_list_id = get_post_meta($post->ID, 'price_list_id', true);
+                $rooftop_price_list_id = $rooftop_price_list_id ? $rooftop_price_list_id : array_values($price_lists)[0]->ID;
             }
 
+            $this->renderSelect("rooftop[event_price][price_list_id]", $price_lists, $rooftop_price_list_id);
         }, 'event_price');
 
         add_meta_box('event_instance_ticket_band', 'Price Band', function() {
@@ -201,19 +200,8 @@ class Rooftop_Events_Admin {
         if( 'event_price' != $post->post_type ) return;
 
         if( $_POST && array_key_exists('rooftop', $_POST) ) {
-            $price_list_id = get_post_meta($post_id, 'price_list_id', true);
-
-            if( !$price_list_id ) {
-                $price_list_id = (array_key_exists('rooftop', $_POST) && array_key_exists('price_list', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_price']['price_list_id'] : null;
-
-                if( !$price_list_id ) {
-                    return new WP_Error(422, "Unprocessible entity");
-                    echo "No price list ID provided";
-                    exit;
-                }
-
-                update_post_meta($post_id, 'price_list_id', $price_list_id);
-            }
+            $price_list_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_price', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_price']['price_list_id'] : null;
+            update_post_meta($post_id, 'price_list_id', $price_list_id);
 
             global $wpdb;
 
