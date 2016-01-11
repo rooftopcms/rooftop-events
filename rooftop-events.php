@@ -14,8 +14,8 @@
  *
  * @wordpress-plugin
  * Plugin Name:       Rooftop Events
- * Plugin URI:        http://errorstudio.co.uk
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Plugin URI:        https://github.com/rooftopcms/rooftop-events
+ * Description:       The Events plugin allows you to create and manage events, availability and prices.
  * Version:           1.0.0
  * Author:            Error
  * Author URI:        https://www.rooftopcms.com
