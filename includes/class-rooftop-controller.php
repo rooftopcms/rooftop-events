@@ -59,27 +59,43 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
             if( $prepared_post->post_type === $this->post_type ) {
                 $meta_data_key = $this->post_type."_meta";
                 $meta_data = $request[$meta_data_key];
-                $meta_data = ( is_array($meta_data) ? $meta_data : Array() );
 
-                foreach($meta_data as $key => $value) {
-                    if( empty( $value ) ) {
-                        delete_post_meta( $prepared_post->ID, $key );
-                    }else {
-                        if( is_array( $value ) ) {
-                            $old_value = get_post_meta( $prepared_post->ID, $key, true );
-                            $old_value = $old_value ? $old_value : [];
-                            $value = array_merge( $old_value, $value );
+                if( $meta_data ) {
+                    $current_meta_data = get_post_meta( $prepared_post->ID, $meta_data_key, true );
+                    $current_meta_data = ( is_array($current_meta_data) ? $current_meta_data : Array() );
 
-                            foreach( $value as $k => $v ) {
-                                if( empty( $v ) ) unset( $value[$k] );
+                    $custom_attributes = Array();
+
+                    foreach($meta_data as $key => $value) {
+                        if( empty( $value ) ) {
+                            unset( $current_meta_data[$key] );
+                        }else {
+                            if( is_array( $value ) ) {
+                                $old_value = $current_meta_data[$key];
+                                $old_value = ( $old_value && is_array( $old_value ) ) ? $old_value : [];
+                                $value = array_merge( $old_value, $value );
+
+                                if( empty( array_filter( $value ) ) ) {
+                                    unset( $current_meta_data[$key] );
+                                    continue;
+                                }else {
+                                    foreach( $value as $k => $v ) {
+                                        if( empty( $v ) ) unset( $value[$k] );
+                                    }
+                                }
                             }
+
+                            $custom_attributes[$key] = $value;
                         }
 
-                        update_post_meta( $prepared_post->ID, $key, $value );
+                        unset($key);
+                        unset($value);
                     }
-                }
 
-                do_action( "rooftop_".$this->post_type."_rest_insert_post", $prepared_post, $request, $success );
+                    $updated_custom_attributes = array_merge( $current_meta_data, $custom_attributes );
+                    update_post_meta( $prepared_post->ID, $prepared_post->post_type."_meta", $updated_custom_attributes );
+                    do_action( "rooftop_".$this->post_type."_rest_insert_post", $prepared_post, $request, $success );
+                }
             }
 
             return $prepared_post;
@@ -94,11 +110,11 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
         }, 10, 2);
 
         add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
-            $custom_attributes = get_post_meta( $post->ID, 'custom_attributes', false );
+            $custom_attributes = get_post_meta( $post->ID, $post->post_type."_meta", false );
 
             if( $custom_attributes && count( $custom_attributes ) ) {
                 foreach( $custom_attributes[0] as $key => $value ) {
-                    $response->data[$this->post_type.'_meta']['custom_attributes'][$key] = $value;
+                    $response->data[$this->post_type.'_meta'][$key] = $value;
                 }
             }
 
