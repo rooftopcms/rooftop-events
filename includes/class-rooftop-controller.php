@@ -59,7 +59,7 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
             if( $prepared_post->post_type === $this->post_type ) {
                 $meta_data_key = $this->post_type."_meta";
                 $meta_data = $request[$meta_data_key];
-                if( !$meta_data) $meta_data = [];
+                $meta_data = ( is_array($meta_data) ? $meta_data : Array() );
 
                 foreach($meta_data as $key => $value) {
                     if( empty( $value ) ) {
