@@ -142,7 +142,7 @@ class Rooftop_Events_Admin {
     public function add_event_price_meta_boxes() {
         add_meta_box('event_instance_price_field', 'Ticket Price', function() {
             $price_meta = get_post_meta( get_the_ID(), 'event_price_meta', true );
-            $ticket_price = array_key_exists( 'ticket_price', $price_meta) ? $price_meta['ticket_price'] : 0;
+            $ticket_price = ( is_array( $price_meta ) && array_key_exists( 'ticket_price', $price_meta ) ) ? $price_meta['ticket_price'] : 0;
 
             echo "£<input type=\"text\" name=\"rooftop[event_price_meta][ticket_price]\" value=\"$ticket_price\"/>";
         }, 'event_price');

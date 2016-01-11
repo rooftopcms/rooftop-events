@@ -13,7 +13,7 @@
         <tbody>
         <?php foreach( $prices as $row ): ?>
             <?php
-            $price_meta = get_post_meta($row->ID);
+            $price_meta = get_post_meta( $row->ID, 'event_price_meta', true );
             $associated_ids = [];
 
             $associated_ids[] = get_post_meta($row->ID, 'price_band_id', true);
@@ -26,14 +26,13 @@
                 <td>
                     <a href="?post=<?php echo $row->ID ?>&action=edit">Edit</a>
                 </td>
-                <td>£<?php echo get_post_meta($row->ID, 'ticket_price', true) ;?></td>
+                <td>£<?php echo $price_meta['ticket_price'] ;?></td>
                 <td><?php echo $price_band ? $price_band->post_title : '' ;?></td>
                 <td><?php echo $ticket_type ? $ticket_type->post_title : '' ;?></td>
             </tr>
         <?php endforeach;?>
         </tbody>
     </table>
-
 <?php else: ?>
     <?php echo "No prices" ?>
 <?php endif; ?>
