@@ -12,8 +12,9 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
         }, 10, 3);
 
         add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
-            $ticket_price = get_post_meta( $post->ID, 'ticket_price', true );
-            $response->data['ticket_price'] = apply_filters( 'rooftop_format_money', $ticket_price );
+            $event_price_meta = get_post_meta( $post->ID, 'event_price_meta', true );
+            $response->data['event_price_meta'] = $event_price_meta;
+
             return $response;
         }, 10, 3);
     }

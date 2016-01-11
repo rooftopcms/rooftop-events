@@ -142,7 +142,7 @@ class Rooftop_Events_Admin {
     public function add_event_price_meta_boxes() {
         add_meta_box('event_instance_price_field', 'Ticket Price', function() {
             $ticket_price = get_post_meta(get_the_ID(), 'ticket_price', true);
-            echo "£<input type=\"text\" name=\"rooftop[price_list][ticket_price]\" value=\"$ticket_price\"/>";
+            echo "£<input type=\"text\" name=\"rooftop[event_price_meta][ticket_price]\" value=\"$ticket_price\"/>";
         }, 'event_price');
 
         add_meta_box('event_price_list', "Price List", function() {
@@ -160,7 +160,7 @@ class Rooftop_Events_Admin {
             if( !$rooftop_price_list_id && count($price_lists) ) {
                 $rooftop_price_list_id = array_key_exists('event_price_list_id', $_GET) ? $_GET['event_price_list_id'] :  array_values($price_lists)[0]->ID;
 
-                $this->renderSelect("rooftop[price_list][price_list_id]", $price_lists, $rooftop_price_list_id);
+                $this->renderSelect("rooftop[event_price][price_list_id]", $price_lists, $rooftop_price_list_id);
             }else {
                 $price_list = get_post($rooftop_price_list_id);
                 echo "<a href=\"/wp-admin/post.php?post=$price_list->ID&action=edit\">$price_list->post_title</a>";
@@ -179,7 +179,7 @@ class Rooftop_Events_Admin {
             $ticket_bands = get_posts($ticket_bands_args);
             $selected = (int)get_post_meta(get_the_ID(), 'price_band_id', true);
 
-            $this->renderSelect("rooftop[price_list][price_band]", $ticket_bands, $selected);
+            $this->renderSelect("rooftop[event_price][price_band_id]", $ticket_bands, $selected);
         }, 'event_price');
 
         add_meta_box('event_instance_ticket_type', 'Ticket Type', function() {
@@ -193,7 +193,7 @@ class Rooftop_Events_Admin {
             $ticket_types = get_posts($ticket_types_args);
             $selected = (int)get_post_meta(get_the_ID(), 'ticket_type_id', true);
 
-            $this->renderSelect("rooftop[price_list][ticket_type]", $ticket_types, $selected);
+            $this->renderSelect("rooftop[event_price][ticket_type_id]", $ticket_types, $selected);
         }, 'event_price');
     }
 
@@ -201,10 +201,10 @@ class Rooftop_Events_Admin {
         if( 'event_price' != $post->post_type ) return;
 
         if( $_POST && array_key_exists('rooftop', $_POST) ) {
-
             $price_list_id = get_post_meta($post_id, 'price_list_id', true);
+
             if( !$price_list_id ) {
-                $price_list_id = (array_key_exists('rooftop', $_POST) && array_key_exists('price_list', $_POST['rooftop'])) ? (int)$_POST['rooftop']['price_list']['price_list_id'] : null;
+                $price_list_id = (array_key_exists('rooftop', $_POST) && array_key_exists('price_list', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_price']['price_list_id'] : null;
 
                 if( !$price_list_id ) {
                     return new WP_Error(422, "Unprocessible entity");
@@ -213,20 +213,24 @@ class Rooftop_Events_Admin {
                 }
 
                 update_post_meta($post_id, 'price_list_id', $price_list_id);
-
             }
 
             global $wpdb;
+
             $table = $wpdb->prefix.'posts';
             $price_list = get_post($price_list_id);
-            $price_post_title = $price_list->post_title . ' (Price: ' . $_POST['rooftop']['price_list']['ticket_price'] . ')';
+            $price_post_title = $price_list->post_title . ' (Price: ' . @$_POST['rooftop']['event_price_meta']['ticket_price'] . ')';
 
             // manually set the price title - the post type itself doesn't support title or content, but we do render the title when listing the event prices
             $wpdb->query($wpdb->prepare("UPDATE $table SET post_title = %s WHERE ID = %d", $price_post_title, $post_id));
 
-            update_post_meta($post_id, 'ticket_price', (int)$_POST['rooftop']['price_list']['ticket_price']);
-            update_post_meta($post_id, 'price_band_id', (int)$_POST['rooftop']['price_list']['price_band']);
-            update_post_meta($post_id, 'ticket_type_id', (int)$_POST['rooftop']['price_list']['ticket_type']);
+            $current_price_meta = get_post_meta( $post_id, 'event_price_meta', true );
+            $current_price_meta = is_array( $current_price_meta ) ? $current_price_meta : [];
+            $event_price_meta = array_merge( $current_price_meta, $_POST['rooftop']['event_price_meta'] );
+
+            update_post_meta( $post_id, 'event_price_meta', $event_price_meta );
+            update_post_meta( $post_id, 'price_band_id', (int)$_POST['rooftop']['event_price']['price_band_id'] );
+            update_post_meta( $post_id, 'ticket_type_id', (int)$_POST['rooftop']['event_price']['ticket_type_id'] );
         }
     }
 
@@ -294,10 +298,10 @@ class Rooftop_Events_Admin {
 
             echo "<table class='table' style='width: 100%'>";
             echo "    <tr>";
-            echo "        <td>Start Date<br/>       <input type='text' value='".$starts_at."' name='rooftop[event_instance][availability][starts_at]' /></td>";
-            echo "        <td>End Date<br/>         <input type='text' value='".$stops_at."'  name='rooftop[event_instance][availability][stops_at]' /></td>";
-            echo "        <td>Seating Capacity<br/> <input type='text' value='".$capacity."'  name='rooftop[event_instance][availability][seats_capacity]' /></td>";
-            echo "        <td>Seats Available<br/>  <input type='text' value='".$available."' name='rooftop[event_instance][availability][seats_available]' /></td>";
+            echo "        <td>Start Date<br/>       <input type='text' value='".$starts_at."' name='rooftop[event_instance_meta][availability][starts_at]' /></td>";
+            echo "        <td>End Date<br/>         <input type='text' value='".$stops_at."'  name='rooftop[event_instance_meta][availability][stops_at]' /></td>";
+            echo "        <td>Seating Capacity<br/> <input type='text' value='".$capacity."'  name='rooftop[event_instance_meta][availability][seats_capacity]' /></td>";
+            echo "        <td>Seats Available<br/>  <input type='text' value='".$available."' name='rooftop[event_instance_meta][availability][seats_available]' /></td>";
             echo "    </tr>";
             echo "</table>";
         }, 'event_instance', 'normal', 'high');
@@ -328,7 +332,7 @@ class Rooftop_Events_Admin {
                 $price_list_id = null;
             }
 
-            update_post_meta( $post_id, 'availability', $_POST['rooftop']['event_instance']['availability'] );
+            update_post_meta( $post_id, 'event_instance_meta', $_POST['rooftop']['event_instance_meta'] );
             update_post_meta( $post_id, 'price_list_id', $price_list_id) ;
         }
     }
