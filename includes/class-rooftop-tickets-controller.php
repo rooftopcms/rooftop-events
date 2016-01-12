@@ -32,7 +32,7 @@ class Rooftop_Tickets_Controller extends Rooftop_Controller {
                 'args'            => $this->get_collection_params(),
             ),
             array(
-                'methods'         => WP_REST_Server::READABLE,
+                'methods'         => WP_REST_Server::EDITABLE,
                 'callback'        => array( $this, 'create_ticket_type' ),
                 'permission_callback' => array( $this, 'get_items_permissions_check' ),
                 'args'            => $this->get_collection_params(),
