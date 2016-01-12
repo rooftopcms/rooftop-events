@@ -50,7 +50,7 @@ class Rooftop_Tickets_Controller extends Rooftop_Controller {
             ),
             array(
                 'methods'         => WP_REST_Server::EDITABLE,
-                'callback'        => array( $this, 'update_item_ticket_type' ),
+                'callback'        => array( $this, 'update_ticket_type' ),
                 'permission_callback' => array( $this, 'get_item_permissions_check' ),
                 'args'            => array(
                     'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
@@ -58,7 +58,7 @@ class Rooftop_Tickets_Controller extends Rooftop_Controller {
             ),
             array(
                 'methods'         => WP_REST_Server::DELETABLE,
-                'callback'        => array( $this, 'delete_item_ticket_type' ),
+                'callback'        => array( $this, 'delete_ticket_type' ),
                 'permission_callback' => array( $this, 'get_item_permissions_check' ),
                 'args'            => array(
                     'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
