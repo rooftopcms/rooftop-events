@@ -17,6 +17,7 @@
             $instance_meta = get_post_meta($row->ID, 'event_instance_meta', true);
             $instance_meta = is_array($instance_meta) ? $instance_meta : [];
             $availability  = @$instance_meta['availability'];
+            $availability = is_array($availability) ? $availability : [];
             ?>
 
             <tr data-event-instance-id="<?php echo $row->ID;?>">
