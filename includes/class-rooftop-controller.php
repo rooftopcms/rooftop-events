@@ -94,8 +94,9 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
 
                     $updated_custom_attributes = array_merge( $current_meta_data, $custom_attributes );
                     update_post_meta( $prepared_post->ID, $prepared_post->post_type."_meta", $updated_custom_attributes );
-                    do_action( "rooftop_".$this->post_type."_rest_insert_post", $prepared_post, $request, $success );
                 }
+
+                do_action( "rooftop_".$this->post_type."_rest_insert_post", $prepared_post, $request, $success );
             }
 
             return $prepared_post;
