@@ -266,7 +266,7 @@ class Rooftop_Events_Public {
     }
 
     public function add_event_instance_fields( $object, $field, $request ) {
-        $event_id = $request['id'];
+        $event_id = $object['id'];
 
         $first = get_post_meta( $event_id, 'first_event_instance', true );
         $last  = get_post_meta( $event_id, 'last_event_instance', true );
