@@ -81,6 +81,15 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
                 ),
             )
         ) );
+
+        register_rest_route( 'rooftop-events/v2', '/events/(?P<event_id>[\d]+)/update_metadata', array(
+            array(
+                'methods'         => WP_REST_Server::EDITABLE,
+                'callback'        => array( $this, 'update_event_metadata' ),
+                'permission_callback' => array( $this, 'update_item_permissions_check' ),
+                'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+            )
+        ) );
     }
 
     public function get_events( $request ) {
@@ -99,4 +108,14 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         return $this->delete_item( $request );
     }
 
+    public function update_event_metadata( $request ) {
+        $event_id = (int) $request['event_id'];
+
+        do_action( 'rooftop_update_event_metadata', $event_id );
+
+        return $this->get_item( array(
+            'id'      => $event_id,
+            'context' => 'edit',
+        ));
+    }
 }

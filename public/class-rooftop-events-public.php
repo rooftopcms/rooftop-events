@@ -207,4 +207,70 @@ class Rooftop_Events_Public {
 
         return get_posts( $associated_post_args );
     }
+
+    /**
+     *
+     * When saving an event instance (in WP admin), we perform this action which fetches the event instances for the
+     * given event_id, sorts them based on the starts_at attribute, and then stores the first start date and last start
+     * date in the 'event_instance_dates' metadata key on the event
+     *
+     * @param $event_id
+     * @return bool
+     */
+    public function update_event_metadata( $event_id ) {
+        $event = get_post( $event_id );
+
+        if( !$event ) {
+            return false;
+        }
+
+        $instance_args = array(
+            'meta_key' => 'event_id',
+            'meta_value' => $event_id,
+            'post_type' => 'event_instance',
+            'post_status' => array('publish', 'draft'),
+            'posts_per_page' => -1
+        );
+
+        $event_instances = get_posts( $instance_args );
+
+        array_map( function( $instance ) {
+            $event_instance_meta = get_post_meta( $instance->ID, 'event_instance_meta', true );
+            $availability_meta = array_key_exists( 'availability', $event_instance_meta ) ? $event_instance_meta['availability'] : [];
+
+            $instance->starts_at = new DateTime($availability_meta['starts_at']);
+            $instance->stops_at  = new DateTime($availability_meta['stops_at']);
+        }, $event_instances );
+
+        usort( $event_instances, function( $a, $b ) {
+            if( $a->starts_at == $b->starts_at ) return 0;
+
+            return ( $a->starts_at < $b->starts_at ) ? -1 : 1;
+        } );
+
+        $first = $event_instances[0];
+        $last  = end( $event_instances );
+
+        update_post_meta( $event_id, 'first_event_instance', $first->starts_at->format( DateTime::ISO8601 ) );
+        update_post_meta( $event_id, 'last_event_instance',  $last->starts_at->format( DateTime::ISO8601 ) );
+    }
+
+    public function add_event_instance_fields_to_event( $response ) {
+        register_rest_field( 'event', 'event_instance_dates',
+            array(
+                'get_callback'    => array( $this, 'add_event_instance_fields' ),
+                'update_callback' => null,
+                'schema'          => null,
+            )
+        );
+    }
+
+    public function add_event_instance_fields( $object, $field, $request ) {
+        $event_id = $request['id'];
+
+        $first = get_post_meta( $event_id, 'first_event_instance', true );
+        $last  = get_post_meta( $event_id, 'last_event_instance', true );
+
+        return array('first' => $first, 'last' => $last);
+    }
 }
