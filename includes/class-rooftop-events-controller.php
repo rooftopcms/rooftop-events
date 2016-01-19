@@ -8,6 +8,16 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
             update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
 
+            $updated_meta = $request[$this->post_type."_meta"];
+
+            // we need the event genre to be a top-level attribute (not a part of the event_meta array)
+            // so that we can easily query related events that value
+            if( array_key_exists( 'genre', $updated_meta ) && strlen( $updated_meta['genre'] ) ) {
+                update_post_meta( $request['id'], 'event_genre', $updated_meta['genre'] );
+            }else {
+                delete_post_meta( $request['id'], 'event_genre' );
+            }
+
             return $prepared_post;
         }, 10, 3);
     }
