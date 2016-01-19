@@ -289,6 +289,9 @@ class Rooftop_Events_Public {
         if( count( $related_events ) ) {
             $number_of_related_events = count( $related_events ) >= 4 ? 4 : count( $related_events );
             $related_event_keys = array_rand( $related_events , $number_of_related_events );
+            if( $related_event_keys == 0 ) {
+                $related_event_keys = [$related_event_keys];
+            }
             $related_events = array_intersect_key( $related_events, array_flip( $related_event_keys ) );
 
             $related_events = array_map( function( $event ) {
