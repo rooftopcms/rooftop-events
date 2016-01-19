@@ -292,8 +292,10 @@ class Rooftop_Events_Public {
             if( $related_event_keys == 0 ) {
                 $related_event_keys = [$related_event_keys];
             }
+            // flip the related_event_keys array and get the values for those indexes out of $related_events
             $related_events = array_intersect_key( $related_events, array_flip( $related_event_keys ) );
 
+            // dont return full post objects - just the attributes we need to render a link to the post
             $related_events = array_map( function( $event ) {
                 return array(
                     'id'    => $event->ID,
