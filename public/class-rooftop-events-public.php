@@ -256,13 +256,19 @@ class Rooftop_Events_Public {
     }
 
     public function add_event_instance_fields_to_event( $response ) {
-        register_rest_field( 'event', 'event_instance_dates',
-            array(
-                'get_callback'    => array( $this, 'add_event_instance_fields' ),
-                'update_callback' => null,
-                'schema'          => null,
-            )
-        );
+        register_rest_field( 'event', 'event_instance_dates', array(
+            'get_callback'    => array( $this, 'add_event_instance_fields' ),
+            'update_callback' => null,
+            'schema'          => null,
+        ) );
+    }
+
+    public function add_related_events_to_event( $response ) {
+        register_rest_field( 'event', 'related_events', array(
+            'get_callback'    => array( $this, 'add_related_events' ),
+            'update_callback' => null,
+            'schema'          => null
+        ) );
     }
 
     public function add_event_instance_fields( $object, $field, $request ) {
@@ -272,5 +278,45 @@ class Rooftop_Events_Public {
         $last  = get_post_meta( $event_id, 'last_event_instance', true );
 
         return array('first' => $first, 'last' => $last);
+    }
+
+    public function add_related_events( $object, $field, $request ) {
+        $event_id = $object['id'];
+        $genre    = get_post_meta( $event_id, 'event_genre', true );
+
+        $related_events = $this->get_related_events( $event_id, $genre );
+
+        if( count( $related_events ) ) {
+            $number_of_related_events = count( $related_events ) >= 4 ? 4 : count( $related_events );
+            $related_event_keys = array_rand( $related_events , $number_of_related_events );
+            $related_events = array_intersect_key( $related_events, array_flip( $related_event_keys ) );
+
+            $related_events = array_map( function( $event ) {
+                return array(
+                    'id'    => $event->ID,
+                    'title' => $event->post_title,
+                    'slug'  => $event->post_name
+                );
+            }, $related_events );
+
+            return $related_events;
+        }else {
+            return [];
+        }
+    }
+
+    private function get_related_events( $event_id, $genre, $count = -1 ) {
+        $events_in_genre_args = array(
+            'post_type' => 'event',
+            'post_status' => array('publish'),
+            'posts_per_page' => $count,
+            'post__not_in' => array( $event_id ),
+            'meta_key' => 'event_genre',
+            'meta_value' => $genre
+        );
+
+        $events_in_genre = get_posts( $events_in_genre_args );
+
+        return $events_in_genre;
     }
 }

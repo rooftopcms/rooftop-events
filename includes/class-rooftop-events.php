@@ -212,6 +212,7 @@ class Rooftop_Events {
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'initialise_events_controller' );
 
         $this->loader->add_filter( 'rest_api_init', $plugin_public, 'add_event_instance_fields_to_event', 10, 3 );
+        $this->loader->add_filter( 'rest_api_init', $plugin_public, 'add_related_events_to_event', 10, 3 );
 
         $this->loader->add_action( 'delete_post', $plugin_public, 'delete_event', 10, 1);
         $this->loader->add_action( 'delete_post', $plugin_public, 'delete_price_list', 10, 1);
