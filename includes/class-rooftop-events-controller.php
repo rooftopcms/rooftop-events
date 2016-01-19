@@ -30,6 +30,11 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'href' => rest_url( $base . '/' . $post->ID . '/instances'),
             'embeddable' => true
         );
+        $links['related_events'] = array(
+            'href' => rest_url( $base . '/' . $post->ID . '/related_events'),
+            'embeddable' => true
+        );
+
         $links['self'] = array(
             'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
         );
@@ -39,6 +44,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         $links['about'] = array(
             'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
         );
+
 
         return $links;
     }
@@ -100,6 +106,15 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
                 'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
             )
         ) );
+
+        register_rest_route( 'rooftop-events/v2', '/events/(?P<event_id>[\d]+)/related_events', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_related_events' ),
+                'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                'args'            => $this->get_collection_params(),
+            )
+        ) );
     }
 
     public function get_events( $request ) {
@@ -127,5 +142,29 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'id'      => $event_id,
             'context' => 'edit',
         ));
+    }
+
+    public function get_related_events( $request ) {
+        $event_id = $request['event_id'];
+        $genre    = get_post_meta( $event_id, 'event_genre', true );
+
+        $events_in_genre_args = array(
+            'post_type' => 'event',
+            'post_status' => array('publish'),
+            'posts_per_page' => -1,
+            'post__not_in' => array( $event_id ),
+            'meta_key' => 'event_genre',
+            'meta_value' => $genre
+        );
+
+        $related_events = get_posts( $events_in_genre_args );
+
+        $related_event_ids = array_map( function( $event ) {
+            return $event->ID;
+        }, $related_events );
+
+        $request->set_param( 'filter', array( 'post__in' => array_values( $related_event_ids ), 'post_type' => 'event', 'post__not_in' => array( $event_id ) ) );
+
+        return $this->get_items( $request );
     }
 }

@@ -181,6 +181,12 @@ class Rooftop_Events_Public {
         return $valid_vars;
     }
 
+    public function allow_related_events_query_args( $valid_vars ) {
+        $valid_vars = array_merge( $valid_vars, array( 'post__in', 'post__not_in' ) );
+
+        return $valid_vars;
+    }
+
     public function delete_event( $event_id ) {
         $this->delete_associated_posts( $event_id, 'event_instance', 'event_id' );
     }
@@ -296,12 +302,9 @@ class Rooftop_Events_Public {
             $related_events = array_intersect_key( $related_events, array_flip( $related_event_keys ) );
 
             // dont return full post objects - just the attributes we need to render a link to the post
-            $related_events = array_map( function( $event ) {
-                return array(
-                    'id'    => $event->ID,
-                    'title' => $event->post_title,
-                    'slug'  => $event->post_name
-                );
+            $related_events = array_map( function( $event ) use ( $object, $request ) {
+                $object['data'] = array('content' => $object['content']['rendered'], 'excerpt' => $event->post_excerpt, 'link' => get_post_permalink($event->ID));
+                return apply_filters( 'rest_prepare_event', (object)$object, $event, $request );
             }, $related_events );
 
             return $related_events;
