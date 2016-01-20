@@ -293,7 +293,7 @@ class Rooftop_Events_Public {
         $related_events = $this->get_related_events( $event_id, $genre );
 
         if( count( $related_events ) ) {
-            $number_of_related_events = count( $related_events ) >= 4 ? 4 : count( $related_events );
+            $number_of_related_events = count( $related_events ) >= 3 ? 3 : count( $related_events );
             $related_event_keys = array_rand( $related_events , $number_of_related_events );
             if( $related_event_keys == 0 ) {
                 $related_event_keys = [$related_event_keys];

@@ -163,6 +163,10 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             return $event->ID;
         }, $related_events );
 
+        $number_of_related_events = count( $related_event_ids ) >= 3 ? 3 : count( $related_event_ids );
+        $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
+        $related_event_ids = array_intersect_key( $related_event_ids, array_flip( $related_event_indexes ) );
+
         $request->set_param( 'filter', array( 'post__in' => array_values( $related_event_ids ), 'post_type' => 'event', 'post__not_in' => array( $event_id ) ) );
 
         return $this->get_items( $request );
