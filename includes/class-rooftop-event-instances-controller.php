@@ -18,6 +18,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
         add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $event_instance_meta = get_post_meta( $post->ID, 'event_instance_meta', true );
             $response->data['event_instance_meta'] = $event_instance_meta;
+            $response->data['price_list_id'] = get_post_meta( $post->ID, 'price_list_id', true );
 
             return $response;
         }, 10, 3);
