@@ -145,6 +145,14 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
     }
 
     public function get_related_events( $request ) {
+        $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+        $url = wp_parse_url($_SERVER['REQUEST_URI']);
+        $events_index = preg_match( '/events$/', $url['path'] );
+
+        if( $context === 'embed' && $events_index ) {
+            return []; // when hitting the events index, we don't need the related events data
+        }
+
         $event_id = $request['event_id'];
         $genre    = get_post_meta( $event_id, 'event_genre', true );
 
@@ -164,11 +172,16 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         }, $related_events );
 
         $number_of_related_events = count( $related_event_ids ) >= 3 ? 3 : count( $related_event_ids );
-        $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
-        $related_event_ids = array_intersect_key( $related_event_ids, array_flip( $related_event_indexes ) );
 
-        $request->set_param( 'filter', array( 'post__in' => array_values( $related_event_ids ), 'post_type' => 'event', 'post__not_in' => array( $event_id ) ) );
+        if( $number_of_related_events ) {
+            $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
+            $related_event_ids = array_intersect_key( $related_event_ids, array_flip( $related_event_indexes ) );
 
-        return $this->get_items( $request );
+            $request->set_param( 'filter', array( 'post__in' => array_values( $related_event_ids ), 'post_type' => 'event', 'post__not_in' => array( $event_id ) ) );
+
+            return $this->get_items( $request );
+        }else {
+            return [];
+        }
     }
 }
