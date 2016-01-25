@@ -269,6 +269,15 @@ class Rooftop_Events_Public {
         ) );
     }
 
+    public function add_event_status_to_event( $response ) {
+        register_rest_field( 'event', 'status', array(
+            'get_callback' => function( $object, $field, $request ){
+                    return get_post_status( $object['id'] );
+            },
+            'update_callback' => null,
+            'schema' => null) );
+    }
+
     public function add_related_events_to_event( $response ) {
         register_rest_field( 'event', 'related_events', array(
             'get_callback'    => array( $this, 'add_related_events' ),
