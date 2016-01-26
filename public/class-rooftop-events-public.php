@@ -234,7 +234,7 @@ class Rooftop_Events_Public {
             'meta_key' => 'event_id',
             'meta_value' => $event_id,
             'post_type' => 'event_instance',
-            'post_status' => array('publish', 'draft'),
+            'post_status' => array('publish'),
             'posts_per_page' => -1
         );
 
