@@ -176,7 +176,7 @@ class Rooftop_Events_Public {
     }
 
     public function allow_meta_query_args( $valid_vars ) {
-        $valid_vars = array_merge( $valid_vars, array( 'meta_key', 'meta_value' ) );
+        $valid_vars = array_merge( $valid_vars, array( 'meta_key', 'meta_value', 'meta_query' ) );
 
         return $valid_vars;
     }

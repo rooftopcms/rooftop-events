@@ -7,6 +7,8 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
         // add the event_id metadata to newly created event instance posts
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
             update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
+            update_post_meta( $prepared_post->ID, 'ticket_type_id', $request['event_price_meta']['ticket_type_id'] );
+            update_post_meta( $prepared_post->ID, 'price_band_id',  $request['event_price_meta']['price_band_id'] );
 
             return $prepared_post;
         }, 10, 3);
