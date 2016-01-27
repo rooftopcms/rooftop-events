@@ -230,7 +230,8 @@ class Rooftop_Events_Admin {
 
             $event_posts_args = array(
                 'post_type' => 'event',
-                'post_status' => array('publish', 'pending', 'draft', 'future', 'private')
+                'post_status' => 'all',
+                'posts_per_page' => -1
             );
             $event_posts = get_posts($event_posts_args);
 
