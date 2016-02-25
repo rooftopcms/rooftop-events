@@ -183,7 +183,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             return $event->ID;
         }, $related_events );
 
-        $number_of_related_events = count( $related_event_ids ) >= 3 ? 3 : count( $related_event_ids );
+        $number_of_related_events = count( $related_event_ids ) >= 10 ? 10 : count( $related_event_ids );
 
         if( $number_of_related_events ) {
             $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
