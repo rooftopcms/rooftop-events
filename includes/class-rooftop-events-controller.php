@@ -161,8 +161,20 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'post_status' => array('publish'),
             'posts_per_page' => -1,
             'post__not_in' => array( $event_id ),
-            'meta_key' => 'event_genre',
-            'meta_value' => $genre
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'event_genre',
+                    'value' => $genre,
+                    'compare' => '='
+                ),
+                array(
+                    'key' => 'last_event_instance',
+                    'value' => date('Y-m-d H:i:s'),
+                    'compare' => '>='
+                )
+            )
+
         );
 
         $related_events = get_posts( $events_in_genre_args );
@@ -177,7 +189,14 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
             $related_event_ids = array_intersect_key( $related_event_ids, array_flip( $related_event_indexes ) );
 
-            $request->set_param( 'filter', array( 'post__in' => array_values( $related_event_ids ), 'post_type' => 'event', 'post__not_in' => array( $event_id ) ) );
+            $request->set_param( 'filter', array(
+                'orderby' => 'meta_value_num',
+                'meta_key' => 'last_event_instance',
+                'order' => 'asc',
+                'post__in' => array_values( $related_event_ids ),
+                'post_type' => 'event',
+                'post__not_in' => array( $event_id ))
+            );
 
             return $this->get_items( $request );
         }else {
