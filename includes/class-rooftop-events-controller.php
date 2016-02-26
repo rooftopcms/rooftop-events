@@ -184,12 +184,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             return $event->ID;
         }, $related_events );
 
-        $number_of_related_events = count( $related_event_ids ) >= 3 ? 3 : count( $related_event_ids );
-
-        if( $number_of_related_events ) {
-            $related_event_indexes = array_rand( $related_event_ids , $number_of_related_events );
-            $related_event_ids = array_intersect_key( $related_event_ids, array_flip( $related_event_indexes ) );
-
+        if( count( $related_event_ids ) ) {
             $request->set_param( 'filter', array(
                 'orderby' => 'meta_value_num',
                 'meta_key' => 'last_event_instance',
