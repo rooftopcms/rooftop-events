@@ -198,6 +198,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
                 'post_type' => 'event',
                 'post__not_in' => array( $event_id ))
             );
+            $request->set_param( 'per_page', 3 );
 
             return $this->get_items( $request );
         }else {
