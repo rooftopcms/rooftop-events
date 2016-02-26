@@ -163,19 +163,20 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'post__not_in' => array( $event_id ),
             'meta_query' => array(
                 'relation' => 'AND',
-                array(
+                'genre_clause' => array(
                     'key' => 'event_genre',
                     'value' => $genre,
                     'compare' => '='
                 ),
-                array(
+                'last_event_instance_clause' => array(
                     'key' => 'last_event_instance',
                     'value' => date('Y-m-d H:i:s'),
                     'type' => 'DATETIME',
                     'compare' => '>='
                 )
-            )
-
+            ),
+            'orderby' => 'last_event_instance_clause',
+            'order' => 'ASC'
         );
 
         $related_events = get_posts( $events_in_genre_args );
@@ -186,14 +187,12 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
 
         if( count( $related_event_ids ) ) {
             $request->set_param( 'filter', array(
-                'orderby' => 'meta_value_num',
-                'meta_key' => 'last_event_instance',
-                'order' => 'asc',
+                'orderby' => 'post__in',
                 'post__in' => array_values( $related_event_ids ),
                 'post_type' => 'event',
                 'post__not_in' => array( $event_id ))
             );
-            $request->set_param( 'per_page', 10 );
+            $request->set_param( 'per_page', 3 );
 
             return $this->get_items( $request );
         }else {
