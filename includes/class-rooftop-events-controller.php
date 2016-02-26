@@ -171,6 +171,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
                 array(
                     'key' => 'last_event_instance',
                     'value' => date('Y-m-d H:i:s'),
+                    'type' => 'DATETIME',
                     'compare' => '>='
                 )
             )
