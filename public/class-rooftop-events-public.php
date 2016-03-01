@@ -175,18 +175,6 @@ class Rooftop_Events_Public {
         $price_bands->register_routes();
     }
 
-    public function allow_meta_query_args( $valid_vars ) {
-        $valid_vars = array_merge( $valid_vars, array( 'meta_key', 'meta_value', 'meta_query' ) );
-
-        return $valid_vars;
-    }
-
-    public function allow_related_events_query_args( $valid_vars ) {
-        $valid_vars = array_merge( $valid_vars, array( 'post__in', 'post__not_in' ) );
-
-        return $valid_vars;
-    }
-
     public function delete_event( $event_id ) {
         $this->delete_associated_posts( $event_id, 'event_instance', 'event_id' );
     }
