@@ -28,7 +28,12 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
 
         $links['instances'] = array(
             'href' => rest_url( $base . '/' . $post->ID . '/instances'),
-            'embeddable' => true
+            'embeddable' => true,
+            'args'            => Array(
+                    'per_page' => 1,
+                    'posts_per_page' => 1
+                )
+
         );
         $links['related_events'] = array(
             'href' => rest_url( $base . '/' . $post->ID . '/related_events'),
