@@ -228,13 +228,23 @@ class Rooftop_Events_Public {
 
         $event_instances = get_posts( $instance_args );
 
-        array_map( function( $instance ) {
+        if( !count( $event_instances ) ) {
+            return;
+        }
+
+        $event_instance_availabilities = array();
+
+        foreach( $event_instances as $instance ) {
             $event_instance_meta = get_post_meta( $instance->ID, 'event_instance_meta', true );
             $availability_meta = array_key_exists( 'availability', $event_instance_meta ) ? $event_instance_meta['availability'] : [];
 
-            $instance->starts_at = new DateTime($availability_meta['starts_at']);
-            $instance->stops_at  = new DateTime($availability_meta['stops_at']);
-        }, $event_instances );
+            $event_instance_availabilities[$instance->ID] = array_merge( array( 'seats_available' => 0, 'seats_capacity' => 0 ), $availability_meta );
+
+            $instance->starts_at = new DateTime( $availability_meta['starts_at'] );
+            $instance->stops_at  = new DateTime( $availability_meta['stops_at'] );
+        }
+
+        update_post_meta( $event_id, 'event_instance_availabilities', $event_instance_availabilities );
 
         usort( $event_instances, function( $a, $b ) {
             if( $a->starts_at == $b->starts_at ) return 0;
@@ -252,6 +262,12 @@ class Rooftop_Events_Public {
     public function add_event_instance_fields_to_event( $response ) {
         register_rest_field( 'event', 'event_instance_dates', array(
             'get_callback'    => array( $this, 'add_event_instance_fields' ),
+            'update_callback' => null,
+            'schema'          => null,
+        ) );
+
+        register_rest_field( 'event', 'event_instance_availabilities', array(
+            'get_callback'    => array( $this, 'add_event_instance_availabilities' ),
             'update_callback' => null,
             'schema'          => null,
         ) );
@@ -281,6 +297,12 @@ class Rooftop_Events_Public {
         $last  = get_post_meta( $event_id, 'last_event_instance', true );
 
         return array('first' => $first, 'last' => $last);
+    }
+
+    public function add_event_instance_availabilities( $object, $field, $request ) {
+        $event_id = $object['id'];
+
+        return get_post_meta( $event_id, 'event_instance_availabilities' );
     }
 
     public function add_related_events( $object, $field, $request ) {

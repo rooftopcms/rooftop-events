@@ -112,7 +112,8 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
         $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
         if( $context == 'embed' ) {
-            $request->set_param('per_page', -1);
+            $instances_per_page = (int)$_GET['instances_per_page'] ? $_GET['instances_per_page'] : 10 ;
+            $request->set_param( 'per_page', $instances_per_page ) ;
         }
 
         return $this->get_items( $request );
