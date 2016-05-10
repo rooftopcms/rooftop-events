@@ -335,7 +335,7 @@ class Rooftop_Events_Public {
     private function get_related_events( $event_id, $genre, $count = -1 ) {
         $events_in_genre_args = array(
             'post_type' => 'event',
-            'post_status' => array('publish'),
+            'post_status' => apply_filters( 'rooftop_published_statuses', array() ),
             'posts_per_page' => $count,
             'post__not_in' => array( $event_id ),
             'meta_key' => 'event_genre',
