@@ -16,6 +16,7 @@ enough to allow you to use this on websites or in apps.
 
 This plugin is a work in progress.
 
+
 Track progress, raise issues and contribute at http://github.com/rooftopcms/rooftop-events
 
 == Installation ==
