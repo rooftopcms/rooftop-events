@@ -6,6 +6,8 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
     public $post_type;
 
     public function __construct( $post_type ) {
+        parent::__construct($post_type);
+
         $this->post_type = $post_type;
 
         $this->register_routes();

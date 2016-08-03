@@ -21,9 +21,6 @@ class Rooftop_Tickets_Controller extends Rooftop_Controller {
      * Register the routes for the objects of the controller.
      */
     public function register_routes() {
-
-        $base = $this->get_post_type_base( $this->post_type ) . 's';
-
         register_rest_route( 'rooftop-events/v2', '/ticket_types', array(
             array(
                 'methods'         => WP_REST_Server::READABLE,

@@ -59,7 +59,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
      */
     public function register_routes() {
 
-        $base = $this->get_post_type_base( $this->post_type ) . 's';
+        $base = "{$this->rest_base}s";
 
         register_rest_route( 'rooftop-events/v2', '/' . $base, array(
             array(
