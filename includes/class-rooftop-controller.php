@@ -45,7 +45,9 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
      */
     protected function add_update_attribute_hooks() {
         add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
+            if ( isset($request['status'] ) ) {
+                $prepared_post->post_status = $request['status'];
+            }
 
             $content_attributes = $request['content'];
             if( $content_attributes && array_key_exists( 'content', $content_attributes['basic'] ) ) {
@@ -104,12 +106,6 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
     }
 
     function add_rooftop_rest_presentation_filters() {
-        add_filter( "rest_pre_insert_{$this->post_type}", function( $prepared_post, $request) {
-            $prepared_post->post_status = $request['status'] ? $request['status'] : 'publish';
-
-            return $prepared_post;
-        }, 10, 2);
-
         add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $custom_attributes = get_post_meta( $post->ID, $post->post_type."_meta", false );
 
