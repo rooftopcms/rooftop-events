@@ -279,7 +279,7 @@ class Rooftop_Events_Public {
                     return get_post_status( $object['id'] );
             },
             'update_callback' => null,
-            'schema' => null) );
+            'schema' => array('type' => 'object', 'context' => ['view', 'edit'])) );
     }
 
     public function add_related_events_to_event( $response ) {
