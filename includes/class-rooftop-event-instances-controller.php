@@ -17,6 +17,10 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
         add_action( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
             $event_instance_meta = get_post_meta( $post->ID, 'event_instance_meta', true );
+
+            // our clients depend on event_instance_meta being an object rather than an empty string - return an empty json node if get_post_meta returns ""
+            $event_instance_meta = $event_instance_meta=="" ? json_decode ("{}") : $event_instance_meta;
+
             $response->data['event_instance_meta'] = $event_instance_meta;
             $response->data['price_list_id'] = get_post_meta( $post->ID, 'price_list_id', true );
 
