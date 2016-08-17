@@ -59,7 +59,7 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
             return $prepared_post;
         }, 10, 2);
 
-        add_action( 'rest_insert_post', function( $prepared_post, $request, $success ) {
+        add_action( "rest_insert_{$this->post_type}", function( $prepared_post, $request, $success ) {
             if( $prepared_post->post_type === $this->post_type ) {
                 $meta_data_key = $this->post_type."_meta";
                 $meta_data = $request[$meta_data_key];
