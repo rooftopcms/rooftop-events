@@ -104,7 +104,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function get_event_instances( $request ) {
-        add_filter( 'rest_post_query', function( $args, $request ) {
+        add_filter( 'rest_event_instance_query', function( $args, $request ) {
             if( $args['post_type'] === 'event_instance' ) {
                 $args['meta_key']   = 'event_id';
                 $args['meta_value'] = $request['event_id'];
@@ -112,7 +112,6 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
             return $args;
         }, 10, 2 );
-
 
         $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
         if( $context == 'embed' ) {
