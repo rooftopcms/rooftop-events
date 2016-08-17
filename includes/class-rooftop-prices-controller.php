@@ -100,7 +100,7 @@ class Rooftop_Prices_Controller extends Rooftop_Controller {
     public function get_prices( $request ) {
         $this->post_type = 'event_price';
 
-        add_filter( 'rest_post_query', function( $args, $request ) {
+        add_filter( "rest_{$this->post_type}_query", function( $args, $request ) {
             if( $args['post_type'] === 'event_price' ) {
                 $args['meta_key']   = 'price_list_id';
                 $args['meta_value'] = $request['price_list_id'];
