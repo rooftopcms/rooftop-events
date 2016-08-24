@@ -109,7 +109,18 @@ class Rooftop_Controller extends WP_REST_Posts_Controller {
 
     function add_rooftop_rest_presentation_filters() {
         add_filter( "rest_prepare_".$this->post_type, function( $response, $post, $request ) {
-            $custom_attributes = get_post_meta( $post->ID, $post->post_type."_meta", false );
+            // Make sure meta is added to the post, not a revision.
+            $post_id = $post->ID;
+
+            /*
+             * if the post we've been given is a revision, it wont have any meta-data saved
+             * against it; switch the post id and fetch the relevant post meta.
+             */
+            if ( $the_post = wp_is_post_revision( $post->ID ) ) {
+                $post_id = $the_post;
+            }
+
+            $custom_attributes = get_post_meta( $post_id, $post->post_type."_meta", false );
 
             if( $custom_attributes && count( $custom_attributes ) ) {
                 foreach( $custom_attributes[0] as $key => $value ) {
