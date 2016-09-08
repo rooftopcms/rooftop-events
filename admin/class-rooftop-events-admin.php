@@ -335,7 +335,8 @@ class Rooftop_Events_Admin {
                 $price_list_id = null;
             }
 
-            $event_instance_meta = get_post_meta( $post_id, 'event_instance_meta', true );
+            $event_instance_meta = get_post_meta( $post_id, 'event_instance_meta', false );
+            $event_instance_meta = is_array( $event_instance_meta ) ? $event_instance_meta : [];
             $event_instance_meta = array_merge( $event_instance_meta, $_POST['rooftop']['event_instance_meta'] );
 
             update_post_meta( $post_id, 'event_instance_meta', $event_instance_meta );
