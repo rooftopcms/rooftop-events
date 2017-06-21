@@ -6,7 +6,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
 
         // add the event_id metadata to newly created event instance posts
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
-            update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
+            update_post_meta( $prepared_post->ID, 'event_id', $request['id'] );
 
             $updated_meta = $request[$this->post_type."_meta"];
 
@@ -30,14 +30,17 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             'href' => rest_url( $base . '/' . $post->ID . '/instances'),
             'embeddable' => true,
             'args'            => Array(
-                    'per_page' => 1,
-                    'posts_per_page' => 1
-                )
-
+                'per_page' => 1,
+                'posts_per_page' => 1
+            )
         );
         $links['related_events'] = array(
             'href' => rest_url( $base . '/' . $post->ID . '/related_events'),
-            'embeddable' => true
+            'embeddable' => true,
+            'args'            => Array(
+                'per_page' => 1,
+                'posts_per_page' => 1
+            )
         );
 
         $links['self'] = array(
@@ -103,7 +106,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             )
         ) );
 
-        register_rest_route( 'rooftop-events/v2', '/events/(?P<event_id>[\d]+)/update_metadata', array(
+        register_rest_route( 'rooftop-events/v2', '/events/(?P<id>[\d]+)/update_metadata', array(
             array(
                 'methods'         => WP_REST_Server::EDITABLE,
                 'callback'        => array( $this, 'update_event_metadata' ),
@@ -112,7 +115,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             )
         ) );
 
-        register_rest_route( 'rooftop-events/v2', '/events/(?P<event_id>[\d]+)/related_events', array(
+        register_rest_route( 'rooftop-events/v2', '/events/(?P<id>[\d]+)/related_events', array(
             array(
                 'methods'         => WP_REST_Server::READABLE,
                 'callback'        => array( $this, 'get_related_events' ),
@@ -139,7 +142,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
     }
 
     public function update_event_metadata( $request ) {
-        $event_id = (int) $request['event_id'];
+        $event_id = (int) $request['id'];
 
         do_action( 'rooftop_update_event_metadata', $event_id );
 
@@ -158,7 +161,7 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
             return []; // when hitting the events index, we don't need the related events data
         }
 
-        $event_id = $request['event_id'];
+        $event_id = $request['id'];
         $genre    = get_post_meta( $event_id, 'event_genre', true );
 
         $events_in_genre_args = array(
