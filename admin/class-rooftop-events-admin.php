@@ -129,6 +129,7 @@ class Rooftop_Events_Admin {
 
         }, 'event_price_list');
     }
+
     public function save_event_price_list($post_id, $post, $update) {
         if( 'event_price_list' != $post->post_type ) return;
 
@@ -314,7 +315,7 @@ class Rooftop_Events_Admin {
         // save this instance with a corresponding event_id, so that we can lookup an event's instances using a WP meta query
         $event_id = get_post_meta( $post_id, 'event_id', true );
 
-        do_action( 'rooftop_update_event_metadata', $event_id );
+        do_action( 'rooftop_update_event_metadata_admin', $event_id );
 
         if( !$event_id ) {
             $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_instance']['event_id'] : null;
@@ -342,6 +343,58 @@ class Rooftop_Events_Admin {
             update_post_meta( $post_id, 'event_instance_meta', $event_instance_meta );
             update_post_meta( $post_id, 'price_list_id', $price_list_id) ;
         }
+    }
+
+    /*
+     * this method is doing exactly the same as RooftopEventsPublic (function update_event_metadata) but only called
+     * when saving an event instance in WP admin
+     */
+    public function update_event_metadata_admin( $event_id ) {
+        $event = get_post( $event_id );
+
+        if( !$event ) {
+            return false;
+        }
+
+        $instance_args = array(
+            'meta_key' => 'event_id',
+            'meta_value' => $event_id,
+            'post_type' => 'event_instance',
+            'post_status' => array('publish'),
+            'posts_per_page' => -1
+        );
+
+        $event_instances = get_posts( $instance_args );
+
+        if( !count( $event_instances ) ) {
+            return;
+        }
+
+        $event_instance_availabilities = array();
+
+        foreach( $event_instances as $instance ) {
+            $event_instance_meta = get_post_meta( $instance->ID, 'event_instance_meta', true );
+            $availability_meta = array_key_exists( 'availability', $event_instance_meta ) ? $event_instance_meta['availability'] : [];
+
+            $event_instance_availabilities[$instance->ID] = array_merge( array( 'seats_available' => 0, 'seats_capacity' => 0 ), $availability_meta );
+
+            $instance->starts_at = new DateTime( $availability_meta['starts_at'] );
+            $instance->stops_at  = new DateTime( $availability_meta['stops_at'] );
+        }
+
+        update_post_meta( $event_id, 'event_instance_availabilities', $event_instance_availabilities );
+
+        usort( $event_instances, function( $a, $b ) {
+            if( $a->starts_at == $b->starts_at ) return 0;
+
+            return ( $a->starts_at < $b->starts_at ) ? -1 : 1;
+        } );
+
+        $first = $event_instances[0];
+        $last  = end( $event_instances );
+
+        update_post_meta( $event_id, 'first_event_instance', $first->starts_at->format( DateTime::ISO8601 ) );
+        update_post_meta( $event_id, 'last_event_instance',  $last->starts_at->format( DateTime::ISO8601 ) );
     }
 
     public function save_event($post_id, $post, $update) {
