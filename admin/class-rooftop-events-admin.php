@@ -315,8 +315,6 @@ class Rooftop_Events_Admin {
         // save this instance with a corresponding event_id, so that we can lookup an event's instances using a WP meta query
         $event_id = get_post_meta( $post_id, 'event_id', true );
 
-        do_action( 'rooftop_update_event_metadata_admin', $event_id );
-
         if( !$event_id ) {
             $event_id = (array_key_exists('rooftop', $_POST) && array_key_exists('event_instance', $_POST['rooftop'])) ? (int)$_POST['rooftop']['event_instance']['event_id'] : null;
 
@@ -342,6 +340,8 @@ class Rooftop_Events_Admin {
 
             update_post_meta( $post_id, 'event_instance_meta', $event_instance_meta );
             update_post_meta( $post_id, 'price_list_id', $price_list_id) ;
+
+            do_action( 'rooftop_update_event_metadata_admin', $event_id );
         }
     }
 
