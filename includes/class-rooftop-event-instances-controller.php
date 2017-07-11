@@ -129,7 +129,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     }
 
     public function create_event_instance( $request ) {
-        $event_id = $request['id'];
+        $event_id = $request['event_id'];
         $event_post = get_post( $event_id );
 
         if( $event_post ) {
