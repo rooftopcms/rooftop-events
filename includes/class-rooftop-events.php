@@ -186,6 +186,8 @@ class Rooftop_Events {
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_instance', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price_list', 10, 3 );
+
+        $this->loader->add_action( 'rooftop_update_event_metadata_admin', $plugin_admin, 'update_event_metadata_admin', 10, 1);
 	}
 
 	/**
