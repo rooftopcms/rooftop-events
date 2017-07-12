@@ -102,7 +102,7 @@ class Rooftop_Events_Public {
 
     public function register_event_post_types() {
         $types = array(
-            'event' => array('plural' => 'Events', 'singular' => 'Event', 'custom_args' => array('supports' => array('title','editor','revisions','excerpt'))),
+            'event' => array('plural' => 'Events', 'singular' => 'Event', 'custom_args' => array('supports' => array('title','editor','revisions','excerpt','page-attributes'))),
             'event_instance'   => array('plural' => 'Event Instances',    'singular' => 'Event Instance',    'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
             'event_price_list' => array('plural' => 'Event Price Lists',  'singular' => 'Event Price List',  'custom_args' => array('show_in_menu'=>'edit.php?post_type=event')),
             'event_price'      => array('plural' => 'Event Prices',       'singular' => 'Event Price',       'custom_args' => array('show_in_menu'=>'edit.php?post_type=event', 'supports' => false)),

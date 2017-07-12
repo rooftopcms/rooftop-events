@@ -6,7 +6,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
         // add the event_id metadata to newly created event instance posts
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
-            update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
+            update_post_meta( $prepared_post->ID, 'event_id', $request['id'] );
 
             if( $request['price_list_id'] ) {
                 update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
@@ -115,7 +115,9 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
         $context = ! empty( $request['context'] ) ? $request['context'] : 'view';
         if( $context == 'embed' ) {
-            $instances_per_page = (int)@$_GET['instances_per_page'] ? $_GET['instances_per_page'] : 10 ;
+            $instances_per_page = @$_GET['instances_per_page'] ? (int)$_GET['instances_per_page'] : 10 ;
+            $instances_per_page = $instances_per_page == -1 ? 9999999 : $instances_per_page;
+
             $request->set_param( 'per_page', $instances_per_page ) ;
         }
 
