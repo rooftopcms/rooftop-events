@@ -6,7 +6,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
 
         // add the event_id metadata to newly created event instance posts
         add_action( "rooftop_".$this->post_type."_rest_insert_post", function( $prepared_post, $request, $success ){
-            update_post_meta( $prepared_post->ID, 'event_id', $request['id'] );
+            update_post_meta( $prepared_post->ID, 'event_id', $request['event_id'] );
 
             if( $request['price_list_id'] ) {
                 update_post_meta( $prepared_post->ID, 'price_list_id', $request['price_list_id'] );
@@ -70,7 +70,7 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
             array(
                 'methods'         => WP_REST_Server::CREATABLE,
                 'callback'        => array( $this, 'create_event_instance' ),
-                'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                'permission_callback' => array( $this, 'create_event_instance_permissions_check' ),
                 'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
             )
         ) );
@@ -148,5 +148,29 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
     }
     public function delete_event_instance( $request ) {
         return $this->delete_item( $request );
+    }
+
+
+
+    public function create_event_instance_permissions_check( $request ) {
+        $post_type = get_post_type_object( $this->post_type );
+
+        if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+            return new WP_Error( 'rest_cannot_edit_others', __( 'Sorry, you are not allowed to create posts as this user.' ), array( 'status' => rest_authorization_required_code() ) );
+        }
+
+        if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+            return new WP_Error( 'rest_cannot_assign_sticky', __( 'Sorry, you are not allowed to make posts sticky.' ), array( 'status' => rest_authorization_required_code() ) );
+        }
+
+        if ( ! current_user_can( $post_type->cap->create_posts ) ) {
+            return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to create posts as this user.' ), array( 'status' => rest_authorization_required_code() ) );
+        }
+
+        if ( ! $this->check_assign_terms_permission( $request ) ) {
+            return new WP_Error( 'rest_cannot_assign_term', __( 'Sorry, you are not allowed to assign the provided terms.' ), array( 'status' => rest_authorization_required_code() ) );
+        }
+
+        return true;
     }
 }
