@@ -194,13 +194,11 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
         }, $related_events );
 
         if( count( $related_event_ids ) ) {
-            $request->set_param( 'filter', array(
-                'orderby' => 'post__in',
-                'post__in' => array_values( $related_event_ids ),
-                'post_type' => 'event',
-                'post__not_in' => array( $event_id ))
-            );
             $request->set_param( 'per_page', 3 );
+            $request->set_param( 'orderby', 'post__in' );
+            $request->set_param( 'include', array_values( $related_event_ids ) );
+            $request->set_param( 'post_type', 'event' );
+            $request->set_param( 'exclude', array( $event_id ) );
 
             return $this->get_items( $request );
         }else {
