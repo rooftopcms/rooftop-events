@@ -345,6 +345,15 @@ class Rooftop_Events_Admin {
         }
     }
 
+    public function delete_event_instance( $post_id, $post ) {
+        if( 'event_instance' != $post->post_type || 'auto-draft' == $post->post_status ) {
+            return;
+        }
+
+        $event_id = get_post_meta( $post_id, 'event_id', true );
+        do_action( 'rooftop_update_event_metadata_admin', $event_id );
+    }
+
     /*
      * this method is doing exactly the same as RooftopEventsPublic (function update_event_metadata) but only called
      * when saving an event instance in WP admin
