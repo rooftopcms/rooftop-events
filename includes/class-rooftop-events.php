@@ -184,11 +184,12 @@ class Rooftop_Events {
 
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_instance', 10, 3 );
-        $this->loader->add_action( 'trash_event_instance', $plugin_admin, 'delete_event_instance', 10, 2 );
+        $this->loader->add_action( 'trash_event_instance', $plugin_admin, 'trash_event_instance', 10, 2 );
+        $this->loader->add_action( 'untrash_post', $plugin_admin, 'untrash_event_instance', 10, 2 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price', 10, 3 );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_event_price_list', 10, 3 );
 
-        $this->loader->add_action( 'rooftop_update_event_metadata_admin', $plugin_admin, 'update_event_metadata_admin', 11, 1);
+        $this->loader->add_action( 'rooftop_update_event_metadata_admin', $plugin_admin, 'update_event_metadata_admin', 11, 2);
 	}
 
 	/**
