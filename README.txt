@@ -14,8 +14,8 @@ rooftop-events is an API-first events plugin for Rooftop CMS
 rooftop-events is an API-first events plugin and admin interface for managing events. The data structure is flexible
 enough to allow you to use this on websites or in apps.
 
-This plugin is a work in progress.
-
+Either through the API, or WP admin, you can create & manage:
+events & associated event instances, price lists, prices, price bands, and ticket types
 
 Track progress, raise issues and contribute at http://github.com/rooftopcms/rooftop-events
 
