@@ -150,8 +150,6 @@ class Rooftop_Event_Instances_Controller extends Rooftop_Controller {
         return $this->delete_item( $request );
     }
 
-
-
     public function create_event_instance_permissions_check( $request ) {
         $post_type = get_post_type_object( $this->post_type );
 
