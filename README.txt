@@ -2,7 +2,7 @@
 Contributors: rooftopcms
 Tags: rooftop, api, headless, content, events
 Requires at least: 4.3
-Tested up to: 4.3
+Tested up to: 4.8.1
 Stable tag: 4.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -37,8 +37,13 @@ Yes, it's a Wordpress plugin you're welcome to use outside the context of Roofto
 
 == Changelog ==
 
-= 0.0.1 =
-* Initial release
+= 1.2.0.1 =
+* Tweak readme for packaging
+
+= 1.2.0 =
+* Fixes for updating event metadata when event instances are trashed
+* Update event metadata when restoring instances
+* Unit tests & request specs
 
 == What's Rooftop CMS? ==
 
