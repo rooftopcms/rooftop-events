@@ -1,9 +1,9 @@
-=== Plugin Name ===
+=== Rooftop Events ===
 Contributors: rooftopcms
 Tags: rooftop, api, headless, content, events
-Requires at least: 4.3
+Requires at least: 4.7
 Tested up to: 4.8.1
-Stable tag: 4.3
+Stable tag: 4.8
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -19,6 +19,7 @@ events & associated event instances, price lists, prices, price bands, and ticke
 
 Track progress, raise issues and contribute at http://github.com/rooftopcms/rooftop-events
 
+
 == Installation ==
 
 rooftop-events is a Composer plugin, so you can include it in your Composer.json.
@@ -29,11 +30,13 @@ Otherwise you can install manually:
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. There is no step 3 :-)
 
+
 == Frequently Asked Questions ==
 
 = Can this be used without Rooftop CMS? =
 
 Yes, it's a Wordpress plugin you're welcome to use outside the context of Rooftop CMS. We haven't tested it, though.
+
 
 == Changelog ==
 
@@ -44,6 +47,7 @@ Yes, it's a Wordpress plugin you're welcome to use outside the context of Roofto
 * Fixes for updating event metadata when event instances are trashed
 * Update event metadata when restoring instances
 * Unit tests & request specs
+
 
 == What's Rooftop CMS? ==
 

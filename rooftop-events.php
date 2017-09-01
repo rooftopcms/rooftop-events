@@ -16,12 +16,12 @@
  * Plugin Name:       Rooftop Events
  * Plugin URI:        https://github.com/rooftopcms/rooftop-events
  * Description:       The Events plugin allows you to create and manage events, availability and prices.
- * Version:           1.0.0
- * Author:            Error
+ * Version:           1.2.1
+ * Author:            RooftopCMS
  * Author URI:        https://www.rooftopcms.com
- * License:           GPL-2.0+
+ * License:           GPL-3.0+
  * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
- * Text Domain:       rooftop-admin-theme
+ * Text Domain:       rooftop-events
  * Domain Path:       /languages
  */
 
