@@ -345,7 +345,7 @@ class Rooftop_Events_Admin {
         }
     }
 
-    public function delete_event_instance( $post_id, $post ) {
+    public function trash_event_instance( $post_id, $post ) {
         if( 'event_instance' != $post->post_type || 'auto-draft' == $post->post_status ) {
             return;
         }
@@ -354,11 +354,21 @@ class Rooftop_Events_Admin {
         do_action( 'rooftop_update_event_metadata_admin', $event_id );
     }
 
+    public function untrash_event_instance( $post_id ) {
+        $post = get_post( $post_id );
+        if( 'event_instance' != $post->post_type || 'auto-draft' == $post->post_status ) {
+            return;
+        }
+
+        $event_id = get_post_meta( $post_id, 'event_id', true );
+        do_action( 'rooftop_update_event_metadata_admin', $event_id, $post_id );
+    }
+
     /*
      * this method is doing exactly the same as RooftopEventsPublic (function update_event_metadata) but only called
      * when saving an event instance in WP admin
      */
-    public function update_event_metadata_admin( $event_id ) {
+    public function update_event_metadata_admin( $event_id, $restoring_instance = false ) {
         $event = get_post( $event_id );
 
         if( !$event ) {
@@ -369,17 +379,24 @@ class Rooftop_Events_Admin {
             'meta_key' => 'event_id',
             'meta_value' => $event_id,
             'post_type' => 'event_instance',
-            'post_status' => array('publish'),
+            'post_status' => array( 'publish' ),
             'posts_per_page' => -1
         );
 
         $event_instances = get_posts( $instance_args );
 
-        if( !count( $event_instances ) ) {
-            return;
+        if( $restoring_instance ) {
+            $event_instances[] = get_post( $restoring_instance );
         }
 
         $event_instance_availabilities = array();
+
+        if( !count( $event_instances ) ) {
+            delete_post_meta( $event_id, 'first_event_instance' );
+            delete_post_meta( $event_id, 'last_event_instance' );
+            update_post_meta( $event_id, 'event_instance_availabilities', $event_instance_availabilities );
+            return;
+        }
 
         foreach( $event_instances as $instance ) {
             $event_instance_meta = get_post_meta( $instance->ID, 'event_instance_meta', true );
