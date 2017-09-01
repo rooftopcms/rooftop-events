@@ -2,7 +2,7 @@
 Contributors: rooftopcms
 Tags: rooftop, api, headless, content, events
 Requires at least: 4.3
-Tested up to: 4.3
+Tested up to: 4.8.1
 Stable tag: 4.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -14,8 +14,8 @@ rooftop-events is an API-first events plugin for Rooftop CMS
 rooftop-events is an API-first events plugin and admin interface for managing events. The data structure is flexible
 enough to allow you to use this on websites or in apps.
 
-This plugin is a work in progress.
-
+Either through the API, or WP admin, you can create & manage:
+events & associated event instances, price lists, prices, price bands, and ticket types
 
 Track progress, raise issues and contribute at http://github.com/rooftopcms/rooftop-events
 
@@ -37,8 +37,13 @@ Yes, it's a Wordpress plugin you're welcome to use outside the context of Roofto
 
 == Changelog ==
 
-= 0.0.1 =
-* Initial release
+= 1.2.1 =
+* Tweak readme for packaging
+
+= 1.2.0 =
+* Fixes for updating event metadata when event instances are trashed
+* Update event metadata when restoring instances
+* Unit tests & request specs
 
 == What's Rooftop CMS? ==
 
