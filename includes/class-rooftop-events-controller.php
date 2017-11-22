@@ -76,7 +76,8 @@ class Rooftop_Events_Controller extends Rooftop_Controller {
                 'callback'        => array( $this, 'create_event' ),
                 'permission_callback' => array( $this, 'create_item_permissions_check' ),
                 'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-            )
+            ),
+            'schema' => array( $this, 'get_public_item_schema' ),
         ) );
 
         register_rest_route( 'rooftop-events/v2', '/' . $base . '/(?P<id>[\d]+)', array(
